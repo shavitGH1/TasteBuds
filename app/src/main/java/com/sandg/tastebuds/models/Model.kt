@@ -21,7 +21,7 @@ class Model private constructor() {
     fun getAllRecipes(completion: RecipesCompletion) {
 
 
-        firebaseAuth.signIn("tal.ziii@colman.ac.il", "123456") {
+        firebaseAuth.signIn("shavitp21@gmail.com", "123456") {
 
         }
 
