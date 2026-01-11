@@ -7,19 +7,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.sandg.tastebuds.databinding.FragmentStudentsListBinding
+import com.sandg.tastebuds.databinding.FragmentRecipesListBinding
 import com.sandg.tastebuds.models.Model
-import com.sandg.tastebuds.models.Student
+import com.sandg.tastebuds.models.Recipe
 
-class StudentsListFragment : Fragment() {
+class RecipesListFragment : Fragment() {
 
-    private var binding: FragmentStudentsListBinding? = null
+    private var binding: FragmentRecipesListBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentStudentsListBinding.inflate(layoutInflater, container, false)
+        binding = FragmentRecipesListBinding.inflate(layoutInflater, container, false)
         setupRecyclerView()
         return binding?.root
     }
@@ -30,14 +30,14 @@ class StudentsListFragment : Fragment() {
         binding?.recyclerView?.setHasFixedSize(true)
 
         binding?.progressBar?.visibility = View.VISIBLE
-        Model.shared.getAllStudents { students ->
+        Model.shared.getAllRecipes { recipes ->
 
             binding?.progressBar?.visibility = View.GONE
-            val adapter = StudentsAdapter(students)
+            val adapter = RecipesAdapter(recipes)
             adapter.listener = object : OnItemClickListener {
 
-                override fun onStudentItemClick(student: Student) {
-                    navigateToPinkFragment(student)
+                override fun onRecipeItemClick(recipe: Recipe) {
+                    navigateToPinkFragment(recipe)
                 }
             }
             binding?.recyclerView?.adapter = adapter
@@ -45,9 +45,9 @@ class StudentsListFragment : Fragment() {
 
     }
 
-    private fun navigateToPinkFragment(student: Student) {
+    private fun navigateToPinkFragment(recipe: Recipe) {
         view?.let {
-            val action = StudentsListFragmentDirections.actionStudentsListFragmentToBlueFragment(student.name)
+            val action = RecipesListFragmentDirections.actionRecipesListFragmentToBlueFragment(recipe.name)
             Navigation.findNavController(it).navigate(action)
         }
     }

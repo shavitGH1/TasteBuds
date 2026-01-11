@@ -7,25 +7,20 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import androidx.navigation.Navigation
 import androidx.navigation.findNavController
-import com.sandg.tastebuds.databinding.FragmentAddStudentBinding
+import com.sandg.tastebuds.databinding.FragmentAddRecipeBinding
 import com.sandg.tastebuds.models.Model
-import com.sandg.tastebuds.models.Student
-import kotlin.text.clear
+import com.sandg.tastebuds.models.Recipe
 
-class AddStudentFragment : Fragment() {
+class AddRecipeFragment : Fragment() {
 
-    private var binding: FragmentAddStudentBinding? = null
+    private var binding: FragmentAddRecipeBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentAddStudentBinding.inflate(layoutInflater, container, false)
+        binding = FragmentAddRecipeBinding.inflate(layoutInflater, container, false)
         setupView()
         setHasOptionsMenu(true)
         return binding?.root
@@ -44,21 +39,21 @@ class AddStudentFragment : Fragment() {
             dismiss()
         }
 
-        binding?.saveStudentButton?.setOnClickListener {
+        binding?.saveRecipeButton?.setOnClickListener {
 
             binding?.loadingIndicator?.visibility = View.VISIBLE
 
-            val studentName: String = binding?.nameEditText?.text.toString()
-            val studentId: String = binding?.idEditText?.text.toString()
+            val recipeName: String = binding?.nameEditText?.text.toString()
+            val recipeId: String = binding?.idEditText?.text.toString()
 
-            val student = Student(
-                name = studentName,
-                id = studentId,
-                isPresent = false,
-                avatarUrlString = null
+            val recipe = Recipe(
+                name = recipeName,
+                id = recipeId,
+                isFavorite = false,
+                imageUrlString = null
             )
 
-            Model.shared.addStudent(student) {
+            Model.shared.addRecipe(recipe) {
                 dismiss()
             }
         }

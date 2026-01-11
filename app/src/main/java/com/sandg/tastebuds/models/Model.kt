@@ -1,13 +1,8 @@
 package com.sandg.tastebuds.models
 
-import android.os.Handler
-import android.os.Looper
 import com.sandg.tastebuds.base.Completion
-import com.sandg.tastebuds.base.StudentCompletion
-import com.sandg.tastebuds.base.StudentsCompletion
-import com.sandg.tastebuds.dao.AppLocalDB
-import com.sandg.tastebuds.dao.AppLocalDbRepository
-import java.util.concurrent.Executors
+import com.sandg.tastebuds.base.RecipeCompletion
+import com.sandg.tastebuds.base.RecipesCompletion
 
 class Model private constructor() {
 
@@ -23,46 +18,46 @@ class Model private constructor() {
         val shared = Model()
     }
 
-    fun getAllStudents(completion: StudentsCompletion) {
+    fun getAllRecipes(completion: RecipesCompletion) {
 
 
         firebaseAuth.signIn("tal.ziii@colman.ac.il", "123456") {
 
         }
 
-        firebaseModel.getAllStudents(completion)
+        firebaseModel.getAllRecipes(completion)
 //
 //        executor.execute {
-//            val students = database.studentDao.getAllStudents()
+//            val recipes = database.recipeDao.getAllRecipes()
 //            mainHandler.post {
-//                completion(students)
+//                completion(recipes)
 //            }
 //        }
     }
 
-    fun addStudent(student: Student, completion: Completion) {
-        firebaseModel.addStudent(student, completion)
+    fun addRecipe(recipe: Recipe, completion: Completion) {
+        firebaseModel.addRecipe(recipe, completion)
 
 //        executor.execute {
-//            database.studentDao.insertStudents(student)
+//            database.recipeDao.insertRecipes(recipe)
 //            mainHandler.post {
 //                completion()
 //            }
 //        }
     }
 
-    fun deleteStudent(student: Student) {
-        firebaseModel.deleteStudent(student)
-//        database.studentDao.deleteStudent(student)
+    fun deleteRecipe(recipe: Recipe) {
+        firebaseModel.deleteRecipe(recipe)
+//        database.recipeDao.deleteRecipe(recipe)
     }
 
-    fun getStudentById(id: String, completion: StudentCompletion) {
-        firebaseModel.getStudentById(id, completion)
+    fun getRecipeById(id: String, completion: RecipeCompletion) {
+        firebaseModel.getRecipeById(id, completion)
 
 //        executor.execute {
-//            val student = database.studentDao.getStudentById(id)
+//            val recipe = database.recipeDao.getRecipeById(id)
 //            mainHandler.post {
-//                completion(student)
+//                completion(recipe)
 //            }
 //        }
     }

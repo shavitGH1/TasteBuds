@@ -1,34 +1,33 @@
 package com.sandg.tastebuds.models
 
-import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.sandg.tastebuds.base.Completion
-import com.sandg.tastebuds.base.StudentCompletion
-import com.sandg.tastebuds.base.StudentsCompletion
+import com.sandg.tastebuds.base.RecipeCompletion
+import com.sandg.tastebuds.base.RecipesCompletion
 
 class FirebaseModel {
 
     private val db = Firebase.firestore
 
     private companion object COLLECTIONS {
-        const val STUDENTS = "students"
+        const val RECIPES = "recipes"
     }
 
-    fun getAllStudents(completion: StudentsCompletion) {
-        db.collection(STUDENTS).get()
+    fun getAllRecipes(completion: RecipesCompletion) {
+        db.collection(RECIPES).get()
             .addOnCompleteListener { result ->
                 when (result.isSuccessful) {
-                    true -> completion(result.result.map { Student.fromJson(it.data) })
+                    true -> completion(result.result.map { Recipe.fromJson(it.data) })
                     false -> completion(emptyList())
                 }
             }
     }
 
-    fun addStudent(student: Student, completion: Completion) {
-        db.collection(STUDENTS)
-            .document(student.id)
-            .set(student.toJson)
+    fun addRecipe(recipe: Recipe, completion: Completion) {
+        db.collection(RECIPES)
+            .document(recipe.id)
+            .set(recipe.toJson)
             .addOnSuccessListener { documentReference ->
                 completion()
             }
@@ -38,11 +37,11 @@ class FirebaseModel {
 
     }
 
-    fun deleteStudent(student: Student) {
+    fun deleteRecipe(recipe: Recipe) {
 
     }
 
-    fun getStudentById(id: String, completion: StudentCompletion) {
+    fun getRecipeById(id: String, completion: RecipeCompletion) {
 
     }
 }

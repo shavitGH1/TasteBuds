@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".AddStudentFragment">
+    tools:context=".AddRecipeFragment">
 
 
     <ImageView
@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="36dp"
-        android:text="Student Name"
+        android:text="Recipe Name"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/avatar_image_view" />
 
@@ -34,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Student ID"
+        android:text="Recipe ID"
         app:layout_constraintStart_toStartOf="@+id/name_text_view"
         app:layout_constraintTop_toBottomOf="@+id/name_text_view" />
 
@@ -62,13 +62,13 @@
         app:layout_constraintStart_toEndOf="@+id/id_text_view" />
 
     <Button
-        android:id="@+id/save_student_button"
+        android:id="@+id/save_recipe_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="4dp"
         android:layout_marginBottom="36dp"
-        android:text="Save Student"
+        android:text="Save Recipe"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/cancel_button"
         app:layout_constraintHorizontal_bias="0.5"
@@ -81,19 +81,19 @@
         android:layout_marginStart="4dp"
         android:layout_marginEnd="8dp"
         android:text="Cancel"
-        app:layout_constraintBaseline_toBaselineOf="@+id/save_student_button"
+        app:layout_constraintBaseline_toBaselineOf="@+id/save_recipe_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/save_student_button" />
+        app:layout_constraintStart_toEndOf="@+id/save_recipe_button" />
 
     <TextView
         android:id="@+id/status_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/save_student_button"
+        app:layout_constraintBottom_toTopOf="@+id/save_recipe_button"
         app:layout_constraintEnd_toEndOf="@+id/cancel_button"
-        app:layout_constraintStart_toStartOf="@+id/save_student_button" />
+        app:layout_constraintStart_toStartOf="@+id/save_recipe_button" />
 
     <!-- Loading indicator with a container -->
     <com.google.android.material.loadingindicator.LoadingIndicator

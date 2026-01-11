@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.main_menu_add -> {
-                navController?.navigate(R.id.action_global_addStudentFragment)
+                navController?.navigate(R.id.action_global_addRecipeFragment)
                 return true
             }
             else -> super.onOptionsItemSelected(item)

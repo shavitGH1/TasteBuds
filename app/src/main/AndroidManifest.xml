@@ -15,14 +15,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Colman2026Class2">
         <activity
-            android:name=".StudentsRecyclerViewActivity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".StudentsListActivity"
-            android:exported="true">
-        </activity>
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
