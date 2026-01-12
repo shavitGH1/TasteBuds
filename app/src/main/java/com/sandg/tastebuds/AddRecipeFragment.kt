@@ -35,16 +35,17 @@ class AddRecipeFragment : Fragment() {
 
         binding?.loadingIndicator?.visibility = View.GONE
 
-        binding?.cancelButton?.setOnClickListener {
-            dismiss()
-        }
-
         binding?.saveRecipeButton?.setOnClickListener {
 
             binding?.loadingIndicator?.visibility = View.VISIBLE
 
             val recipeName: String = binding?.nameEditText?.text.toString()
-            val recipeId: String = binding?.idEditText?.text.toString()
+            val preparationTime: String = binding?.preparationTimeEditText?.text.toString()
+            val ingredients: String = binding?.ingredientsEditText?.text.toString()
+            val preparationMethod: String = binding?.preparationMethodEditText?.text.toString()
+
+            // For now, using recipe name as ID (you can change this to generate a unique ID)
+            val recipeId: String = recipeName.replace(" ", "_").lowercase()
 
             val recipe = Recipe(
                 name = recipeName,
@@ -56,6 +57,10 @@ class AddRecipeFragment : Fragment() {
             Model.shared.addRecipe(recipe) {
                 dismiss()
             }
+        }
+
+        binding?.selectImageButton?.setOnClickListener {
+            // TODO: Implement image selection functionality
         }
     }
 
