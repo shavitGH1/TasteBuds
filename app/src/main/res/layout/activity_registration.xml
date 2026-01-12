@@ -3,7 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/food_background"
     android:padding="16dp">
+
+    <!-- Decorative food icon in background -->
+    <ImageView
+        android:id="@+id/decorativeIcon"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/food_decoration"
+        android:alpha="0.3"
+        android:scaleType="centerInside"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.3" />
 
     <!-- Guideline at 10% from start -->
     <androidx.constraintlayout.widget.Guideline
@@ -30,7 +45,11 @@
         android:textSize="48sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textColor="#D84315"
+        android:shadowColor="#80000000"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="3"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end"
         app:layout_constraintTop_toTopOf="parent"
@@ -45,24 +64,93 @@
         android:text="Recipes"
         android:textSize="24sp"
         android:gravity="center"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textColor="#FF6B35"
+        android:textStyle="bold"
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="@id/titleTasteBuds"
         app:layout_constraintEnd_toEndOf="@id/titleTasteBuds"
         app:layout_constraintTop_toBottomOf="@id/titleTasteBuds" />
 
-    <!-- Button to go to recipes -->
-    <Button
-        android:id="@+id/btnGoToRecipes"
+    <!-- Card background for form -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/formCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Go to Recipes"
-        android:textSize="18sp"
-        android:paddingVertical="16dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="32dp"
+        app:cardBackgroundColor="#F5FFFFFF"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end"
-        app:layout_constraintTop_toBottomOf="@id/subtitleRecipes" />
+        app:layout_constraintTop_toBottomOf="@id/subtitleRecipes">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp">
+
+            <!-- Username Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/usernameInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Username"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="#FF6B35"
+                app:hintTextColor="#FF6B35"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etUsername"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/passwordInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Password"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="#FF6B35"
+                app:hintTextColor="#FF6B35"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="#FF6B35"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/usernameInputLayout">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Button to go to recipes -->
+            <Button
+                android:id="@+id/btnGoToRecipes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Next"
+                android:textSize="18sp"
+                android:paddingVertical="16dp"
+                android:layout_marginTop="24dp"
+                android:backgroundTint="#FF6B35"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/passwordInputLayout" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
