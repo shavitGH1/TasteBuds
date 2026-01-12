@@ -1,10 +1,13 @@
 package com.sandg.tastebuds
 
 import android.os.Bundle
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
@@ -38,6 +41,28 @@ class MainActivity : AppCompatActivity() {
         navController = navHost?.navController
         navController?.let {
             NavigationUI.setupActionBarWithNavController(this, it)
+        }
+
+        // Listen for destination changes to update the centered title
+        navController?.addOnDestinationChangedListener { _, destination, _ ->
+            supportActionBar?.let { actionBar ->
+                actionBar.setDisplayShowCustomEnabled(true)
+                actionBar.setDisplayShowTitleEnabled(false)
+
+                val titleTextView = TextView(this).apply {
+                    text = destination.label
+                    textSize = 20f
+                    setTextColor(getColor(android.R.color.black))
+                    gravity = Gravity.CENTER
+                    layoutParams = Toolbar.LayoutParams(
+                        Toolbar.LayoutParams.WRAP_CONTENT,
+                        Toolbar.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        gravity = Gravity.CENTER
+                    }
+                }
+                actionBar.customView = titleTextView
+            }
         }
     }
 

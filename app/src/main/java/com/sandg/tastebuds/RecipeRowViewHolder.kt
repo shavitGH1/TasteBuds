@@ -14,12 +14,6 @@ class RecipeRowViewHolder(
     private var recipe: Recipe? = null
 
     init {
-        binding.checkbox.setOnClickListener { view ->
-            (view?.tag as? Int)?.let { tag ->
-                recipe?.isFavorite = binding.checkbox.isChecked
-            }
-        }
-
         itemView.setOnClickListener {
             recipe?.let { recipe ->
                 listener?.onRecipeItemClick(recipe)
@@ -30,11 +24,7 @@ class RecipeRowViewHolder(
     fun bind(recipe: Recipe, position: Int) {
         this.recipe = recipe
         binding.nameTextView.text = recipe.name
-        binding.idTextView.text = recipe.id
-        binding.checkbox.apply {
-            isChecked = recipe.isFavorite
-            tag = position
-        }
+        binding.authorTextView.text = "Added by ${recipe.id}"
         Log.v("TAG", "Loading image from URL: ${recipe.imageUrlString}")
         Picasso
             .get()

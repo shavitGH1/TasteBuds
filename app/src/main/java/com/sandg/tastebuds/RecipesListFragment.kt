@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.Navigation
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.sandg.tastebuds.databinding.FragmentRecipesListBinding
 import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
@@ -25,7 +25,7 @@ class RecipesListFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        val layout = LinearLayoutManager(context)
+        val layout = GridLayoutManager(context, 2)
         binding?.recyclerView?.layoutManager = layout
         binding?.recyclerView?.setHasFixedSize(true)
 
