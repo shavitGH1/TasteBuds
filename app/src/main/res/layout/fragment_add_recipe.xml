@@ -7,52 +7,17 @@
     android:background="#F5F5F5"
     tools:context=".AddRecipeFragment">
 
-    <!-- Header with Title and Save Button -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/header_layout"
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:id="@+id/scroll_view"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:elevation="4dp"
-        android:padding="16dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/save_recipe_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/header_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Add a new recipe"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/save_recipe_button"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/save_recipe_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Scrollable Content -->
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/header_layout">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -61,6 +26,7 @@
             android:padding="16dp">
 
             <!-- Recipe Name Card -->
+
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -249,6 +215,19 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <!-- Save Button at Bottom -->
+    <Button
+        android:id="@+id/save_recipe_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Save"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Loading indicator -->
     <com.google.android.material.loadingindicator.LoadingIndicator
