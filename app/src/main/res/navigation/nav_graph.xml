@@ -3,22 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/studentsListFragment">
+    app:startDestination="@id/recipesListFragment">
 
     <fragment
-        android:id="@+id/studentsListFragment"
-        android:name="com.sandg.tastebuds.StudentsListFragment"
-        android:label="Students List"
-        tools:layout="@layout/fragment_students_list">
+        android:id="@+id/recipesListFragment"
+        android:name="com.sandg.tastebuds.RecipesListFragment"
+        android:label="Recipes List"
+        tools:layout="@layout/fragment_recipes_list">
         <action
-            android:id="@+id/action_studentsListFragment_to_blueFragment"
+            android:id="@+id/action_recipesListFragment_to_blueFragment"
             app:destination="@id/blueFragment" />
     </fragment>
     <fragment
-        android:id="@+id/addStudentFragment"
-        android:name="com.sandg.tastebuds.AddStudentFragment"
-        android:label="Add Student"
-        tools:layout="@layout/fragment_add_student" />
+        android:id="@+id/addRecipeFragment"
+        android:name="com.sandg.tastebuds.AddRecipeFragment"
+        android:label="Add Recipe"
+        tools:layout="@layout/fragment_add_recipe" />
     <fragment
         android:id="@+id/blueFragment"
         android:name="com.sandg.tastebuds.BlueFragment"
@@ -29,5 +29,5 @@
             app:argType="string"
             app:nullable="true" />
     </fragment>
-    <action android:id="@+id/action_global_addStudentFragment" app:destination="@id/addStudentFragment" />
+    <action android:id="@+id/action_global_addRecipeFragment" app:destination="@id/addRecipeFragment" />
 </navigation>

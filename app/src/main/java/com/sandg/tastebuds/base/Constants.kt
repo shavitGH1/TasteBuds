@@ -1,7 +1,7 @@
 package com.sandg.tastebuds.base
 
-import com.sandg.tastebuds.models.Student
+import com.sandg.tastebuds.models.Recipe
 
-typealias StudentsCompletion = (List<Student>) -> Unit
-typealias StudentCompletion = (Student) -> Unit
+typealias RecipesCompletion = (List<Recipe>) -> Unit
+typealias RecipeCompletion = (Recipe) -> Unit
 typealias Completion = () -> Unit

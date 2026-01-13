@@ -2,9 +2,9 @@ package com.sandg.tastebuds.dao
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.sandg.tastebuds.models.Student
+import com.sandg.tastebuds.models.Recipe
 
-@Database(entities = [Student::class], version = 2)
+@Database(entities = [Recipe::class], version = 2)
 abstract class AppLocalDbRepository: RoomDatabase() {
-    abstract val studentDao: StudentDao
+    abstract val recipeDao: RecipeDao
 }

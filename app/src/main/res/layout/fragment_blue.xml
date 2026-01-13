@@ -13,7 +13,7 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#E91E63"
+        android:background="#E5BE97"
         android:text="Hi, I am a pink fragment"
         android:textAlignment="center"
         android:textColor="#FFFFFF"

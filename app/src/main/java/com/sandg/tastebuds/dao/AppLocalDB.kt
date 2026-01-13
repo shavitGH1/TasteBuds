@@ -13,7 +13,7 @@ object AppLocalDB {
         Room.databaseBuilder(
             context = context,
             klass = AppLocalDbRepository::class.java,
-            name = "students.db"
+            name = "recipes.db"
         )
             .fallbackToDestructiveMigration(true)
             .build()

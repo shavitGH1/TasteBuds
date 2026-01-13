@@ -1,17 +1,16 @@
 package com.sandg.tastebuds
 
 import android.os.Bundle
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Button
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.sandg.tastebuds.databinding.ActivityMainBinding
@@ -43,6 +42,28 @@ class MainActivity : AppCompatActivity() {
         navController?.let {
             NavigationUI.setupActionBarWithNavController(this, it)
         }
+
+        // Listen for destination changes to update the centered title
+        navController?.addOnDestinationChangedListener { _, destination, _ ->
+            supportActionBar?.let { actionBar ->
+                actionBar.setDisplayShowCustomEnabled(true)
+                actionBar.setDisplayShowTitleEnabled(false)
+
+                val titleTextView = TextView(this).apply {
+                    text = destination.label
+                    textSize = 20f
+                    setTextColor(getColor(android.R.color.black))
+                    gravity = Gravity.CENTER
+                    layoutParams = Toolbar.LayoutParams(
+                        Toolbar.LayoutParams.WRAP_CONTENT,
+                        Toolbar.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        gravity = Gravity.CENTER
+                    }
+                }
+                actionBar.customView = titleTextView
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -58,7 +79,7 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.main_menu_add -> {
-                navController?.navigate(R.id.action_global_addStudentFragment)
+                navController?.navigate(R.id.action_global_addRecipeFragment)
                 return true
             }
             else -> super.onOptionsItemSelected(item)
