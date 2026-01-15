@@ -18,7 +18,6 @@ class AddRecipeFragment : Fragment() {
 
     private var binding: FragmentAddRecipeBinding? = null
 
-    // Local lists to collect ingredients and steps
     private val ingredientsList = mutableListOf<Ingredient>()
     private val stepsList = mutableListOf<String>()
 
@@ -35,17 +34,14 @@ class AddRecipeFragment : Fragment() {
 
         binding?.loadingIndicator?.visibility = View.GONE
 
-        // Initialize read-only AI fields (defaults for now)
         binding?.preparationTimeText?.text = getString(R.string.default_time)
         binding?.difficultyText?.text = getString(R.string.default_difficulty)
         binding?.dietRestrictionsText?.text = getString(R.string.default_diet)
 
-        // Add step button behavior: append a new EditText into steps_container
         binding?.addStepButton?.setOnClickListener {
             addStepEditText("")
         }
 
-        // Add ingredient button behavior: show dialog to input name, amount, unit
         binding?.addIngredientButton?.setOnClickListener {
             showAddIngredientDialog()
         }
@@ -57,17 +53,14 @@ class AddRecipeFragment : Fragment() {
             val recipeName: String = binding?.nameEditText?.text.toString().trim()
             if (recipeName.isEmpty()) {
                 binding?.loadingIndicator?.visibility = View.GONE
-                // Simple validation
                 return@setOnClickListener
             }
 
-            // Collect steps from steps_container EditTexts
             val stepsContainer = binding?.stepsContainer
             stepsList.clear()
             stepsContainer?.let { container ->
                 for (i in 0 until container.childCount) {
                     val child = container.getChildAt(i)
-                    // row_step contains an EditText with id step_edit_text
                     val editText = child.findViewById<EditText>(R.id.step_edit_text)
                     if (editText != null) {
                         val text = editText.text.toString().trim()
@@ -76,18 +69,14 @@ class AddRecipeFragment : Fragment() {
                 }
             }
 
-            // For image, we haven't implemented selection; leave null for now
             val imageUrl: String? = null
 
-            // For time/difficulty/dietRestrictions: keep defaults (AI will fill later)
             val time = 30
             val difficulty = "Medium"
             val dietRestrictions = listOf<String>()
 
-            // create recipe id from name
             val recipeId: String = recipeName.replace(" ", "_").lowercase()
 
-            // collect description (if provided)
             val descriptionText = binding?.descriptionEditText?.text?.toString()?.trim()
             val descriptionValue = if (descriptionText.isNullOrBlank()) null else descriptionText
 
@@ -163,7 +152,6 @@ class AddRecipeFragment : Fragment() {
         val remove = row.findViewById<TextView>(R.id.remove_ingredient_text)
         text.text = listOfNotNull(ingredient.amount?.toString(), ingredient.unit, ingredient.name).joinToString(" ")
         remove.setOnClickListener {
-            // remove from list and container
             binding?.ingredientsContainer?.removeView(row)
             ingredientsList.remove(ingredient)
         }

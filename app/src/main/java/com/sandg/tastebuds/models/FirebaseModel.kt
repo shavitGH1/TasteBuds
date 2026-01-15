@@ -34,14 +34,22 @@ class FirebaseModel {
             .addOnFailureListener { e ->
                 completion()
             }
-
     }
 
     fun deleteRecipe(recipe: Recipe) {
-
     }
 
     fun getRecipeById(id: String, completion: RecipeCompletion) {
-
+        db.collection(COLLECTIONS.RECIPES).document(id).get()
+            .addOnSuccessListener { doc ->
+                if (doc != null && doc.data != null) {
+                    completion(Recipe.fromJson(doc.data!!))
+                } else {
+                    completion(Recipe(id = id, name = ""))
+                }
+            }
+            .addOnFailureListener {
+                completion(Recipe(id = id, name = ""))
+            }
     }
 }

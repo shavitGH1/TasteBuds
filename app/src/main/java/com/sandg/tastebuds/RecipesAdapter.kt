@@ -2,20 +2,20 @@ package com.sandg.tastebuds
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sandg.tastebuds.databinding.RecipeRowLayoutBinding
 import com.sandg.tastebuds.models.Recipe
 
 interface OnItemClickListener {
     fun onRecipeItemClick(recipe: Recipe)
+    fun onToggleFavorite(recipe: Recipe)
 }
 
-class RecipesAdapter(
-    private var recipes: List<Recipe>,
-): RecyclerView.Adapter<RecipeRowViewHolder>() {
+class RecipesAdapter : ListAdapter<Recipe, RecipeRowViewHolder>(RecipeDiff()) {
 
     var listener: OnItemClickListener? = null
-    override fun getItemCount(): Int = recipes.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeRowViewHolder {
         val inflator = LayoutInflater.from(parent.context)
@@ -27,6 +27,11 @@ class RecipesAdapter(
     }
 
     override fun onBindViewHolder(holder: RecipeRowViewHolder, position: Int) {
-        holder.bind(recipes[position])
+        holder.bind(getItem(position))
+    }
+
+    class RecipeDiff : DiffUtil.ItemCallback<Recipe>() {
+        override fun areItemsTheSame(oldItem: Recipe, newItem: Recipe): Boolean = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Recipe, newItem: Recipe): Boolean = oldItem == newItem
     }
 }

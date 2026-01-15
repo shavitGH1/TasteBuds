@@ -15,12 +15,10 @@ class RegistrationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Hide the action bar
         supportActionBar?.hide()
 
         setContentView(R.layout.activity_registration)
 
-        // Always show login page - no auto-login check
         Log.d(TAG, "Showing registration/login form")
 
         val etUsername = findViewById<TextInputEditText>(R.id.etUsername)
@@ -38,7 +36,6 @@ class RegistrationActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Accept any username and password - navigate to recipes
             Toast.makeText(this, "Welcome, $username!", Toast.LENGTH_SHORT).show()
             navigateToMainActivity()
         }
@@ -48,7 +45,6 @@ class RegistrationActivity : AppCompatActivity() {
         Log.d(TAG, "Navigating to MainActivity")
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
-        finish() // Finish this activity so user can't go back to registration
+        finish()
     }
 }
-

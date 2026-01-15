@@ -82,8 +82,6 @@ data class Recipe(
         )
 }
 
-// Ingredient is kept close to Recipe for convenience. It is a simple POJO-like data class
-// with JSON helpers used by Recipe.fromJson / toJson and Room converters.
 data class Ingredient(
     val name: String,
     val amount: Double? = null,

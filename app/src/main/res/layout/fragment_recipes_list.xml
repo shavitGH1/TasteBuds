@@ -7,17 +7,6 @@
     android:background="#E5BE97"
     tools:context=".RecipesListFragment">
 
-    <!-- Top toolbar / title -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/top_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:backgroundTint="#FFFFFF"
-        android:elevation="4dp"
-        android:titleTextColor="#000000"
-        android:title="@string/title_recipes"
-        app:titleCentered="true" />
-
     <!-- leave space at bottom for FAB -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -28,7 +17,6 @@
         android:paddingEnd="12dp"
         android:paddingTop="16dp"
         android:paddingBottom="88dp"
-        app:layout_anchor="@id/top_toolbar"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <ProgressBar

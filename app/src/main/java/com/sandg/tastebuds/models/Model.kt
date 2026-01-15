@@ -15,13 +15,9 @@ class Model private constructor() {
     }
 
     fun getAllRecipes(completion: RecipesCompletion) {
-
-        // Try to sign in (kept from previous behavior)
         firebaseAuth.signIn("shavitp21@gmail.com", "123456") {
-
         }
 
-        // First, return any locally cached recipes quickly (background thread)
         Thread {
             try {
                 val local = AppLocalDB.db.recipeDao.getAllRecipes()
@@ -29,39 +25,31 @@ class Model private constructor() {
                     completion(local)
                 }
             } catch (e: Exception) {
-                // ignore local read errors
             }
 
-            // Then fetch from remote and update local DB; final completion will return remote data
             firebaseModel.getAllRecipes { remoteList ->
                 Thread {
                     try {
                         if (remoteList.isNotEmpty()) {
-                            // insert/replace into local DB
                             AppLocalDB.db.recipeDao.insertRecipes(*remoteList.toTypedArray())
                         }
                     } catch (e: Exception) {
-                        // ignore local write errors
                     }
                 }.start()
 
-                // deliver remote data to caller
                 completion(remoteList)
             }
         }.start()
     }
 
     fun addRecipe(recipe: Recipe, completion: Completion) {
-        // Persist locally on a background thread (Room requires background thread for DB writes)
         Thread {
             try {
                 AppLocalDB.db.recipeDao.insertRecipes(recipe)
             } catch (e: Exception) {
-                // ignore local persistence errors for now
             }
         }.start()
 
-        // Also persist remotely via Firebase
         firebaseModel.addRecipe(recipe, completion)
     }
 
@@ -70,6 +58,25 @@ class Model private constructor() {
     }
 
     fun getRecipeById(id: String, completion: RecipeCompletion) {
-        firebaseModel.getRecipeById(id, completion)
+        Thread {
+            try {
+                val local = AppLocalDB.db.recipeDao.getRecipeById(id)
+                if (local != null) {
+                    completion(local)
+                }
+            } catch (e: Exception) {
+            }
+
+            firebaseModel.getRecipeById(id) { remote ->
+                Thread {
+                    try {
+                        AppLocalDB.db.recipeDao.insertRecipes(remote)
+                    } catch (e: Exception) {
+                    }
+                }.start()
+
+                completion(remote)
+            }
+        }.start()
     }
 }
