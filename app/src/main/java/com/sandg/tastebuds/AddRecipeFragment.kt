@@ -1,14 +1,16 @@
 package com.sandg.tastebuds
 
+import android.app.AlertDialog
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.TextView
 import androidx.navigation.findNavController
 import com.sandg.tastebuds.databinding.FragmentAddRecipeBinding
+import com.sandg.tastebuds.models.Ingredient
 import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
 
@@ -16,42 +18,91 @@ class AddRecipeFragment : Fragment() {
 
     private var binding: FragmentAddRecipeBinding? = null
 
+    // Local lists to collect ingredients and steps
+    private val ingredientsList = mutableListOf<Ingredient>()
+    private val stepsList = mutableListOf<String>()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentAddRecipeBinding.inflate(layoutInflater, container, false)
         setupView()
-        setHasOptionsMenu(true)
         return binding?.root
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
     }
 
     private fun setupView() {
 
         binding?.loadingIndicator?.visibility = View.GONE
 
+        // Initialize read-only AI fields (defaults for now)
+        binding?.preparationTimeText?.text = getString(R.string.default_time)
+        binding?.difficultyText?.text = getString(R.string.default_difficulty)
+        binding?.dietRestrictionsText?.text = getString(R.string.default_diet)
+
+        // Add step button behavior: append a new EditText into steps_container
+        binding?.addStepButton?.setOnClickListener {
+            addStepEditText("")
+        }
+
+        // Add ingredient button behavior: show dialog to input name, amount, unit
+        binding?.addIngredientButton?.setOnClickListener {
+            showAddIngredientDialog()
+        }
+
         binding?.saveRecipeButton?.setOnClickListener {
 
             binding?.loadingIndicator?.visibility = View.VISIBLE
 
-            val recipeName: String = binding?.nameEditText?.text.toString()
-            val preparationTime: String = binding?.preparationTimeEditText?.text.toString()
-            val ingredients: String = binding?.ingredientsEditText?.text.toString()
-            val preparationMethod: String = binding?.preparationMethodEditText?.text.toString()
+            val recipeName: String = binding?.nameEditText?.text.toString().trim()
+            if (recipeName.isEmpty()) {
+                binding?.loadingIndicator?.visibility = View.GONE
+                // Simple validation
+                return@setOnClickListener
+            }
 
-            // For now, using recipe name as ID (you can change this to generate a unique ID)
+            // Collect steps from steps_container EditTexts
+            val stepsContainer = binding?.stepsContainer
+            stepsList.clear()
+            stepsContainer?.let { container ->
+                for (i in 0 until container.childCount) {
+                    val child = container.getChildAt(i)
+                    // row_step contains an EditText with id step_edit_text
+                    val editText = child.findViewById<EditText>(R.id.step_edit_text)
+                    if (editText != null) {
+                        val text = editText.text.toString().trim()
+                        if (text.isNotEmpty()) stepsList.add(text)
+                    }
+                }
+            }
+
+            // For image, we haven't implemented selection; leave null for now
+            val imageUrl: String? = null
+
+            // For time/difficulty/dietRestrictions: keep defaults (AI will fill later)
+            val time = 30
+            val difficulty = "Medium"
+            val dietRestrictions = listOf<String>()
+
+            // create recipe id from name
             val recipeId: String = recipeName.replace(" ", "_").lowercase()
 
+            // collect description (if provided)
+            val descriptionText = binding?.descriptionEditText?.text?.toString()?.trim()
+            val descriptionValue = if (descriptionText.isNullOrBlank()) null else descriptionText
+
             val recipe = Recipe(
-                name = recipeName,
                 id = recipeId,
+                name = recipeName,
                 isFavorite = false,
-                imageUrlString = null
+                imageUrlString = imageUrl,
+                publisher = null,
+                ingredients = ingredientsList.toList(),
+                steps = stepsList.toList(),
+                time = time,
+                difficulty = difficulty,
+                dietRestrictions = dietRestrictions,
+                description = descriptionValue
             )
 
             Model.shared.addRecipe(recipe) {
@@ -60,10 +111,64 @@ class AddRecipeFragment : Fragment() {
         }
 
         binding?.selectImageButton?.setOnClickListener {
-            // TODO: Implement image selection functionality
+            // TODO: Implement image selection functionality (open gallery / camera)
         }
     }
 
+    private fun addStepEditText(initialText: String) {
+        val inflater = LayoutInflater.from(requireContext())
+        val row = inflater.inflate(R.layout.row_step, binding?.stepsContainer, false)
+        val editText = row.findViewById<EditText>(R.id.step_edit_text)
+        val remove = row.findViewById<TextView>(R.id.remove_step_text)
+        editText.setText(initialText)
+        remove.setOnClickListener {
+            binding?.stepsContainer?.removeView(row)
+        }
+        binding?.stepsContainer?.addView(row)
+    }
+
+    private fun showAddIngredientDialog() {
+        val inflater = LayoutInflater.from(requireContext())
+        val dialogView = inflater.inflate(R.layout.dialog_add_ingredient, null)
+        val nameInput = dialogView.findViewById<EditText>(R.id.ingredient_name_edit_text)
+        val amountInput = dialogView.findViewById<EditText>(R.id.ingredient_amount_edit_text)
+        val unitInput = dialogView.findViewById<EditText>(R.id.ingredient_unit_edit_text)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.ingredient_dialog_title))
+            .setView(dialogView)
+            .setPositiveButton(getString(R.string.button_add)) { dialogInterface, _ ->
+                val name = nameInput.text.toString().trim()
+                val amount = amountInput.text.toString().toDoubleOrNull()
+                val unit = unitInput.text.toString().trim().ifEmpty { null }
+                if (name.isNotEmpty()) {
+                    val ingredient = Ingredient(name = name, amount = amount, unit = unit)
+                    ingredientsList.add(ingredient)
+                    addIngredientRow(ingredient)
+                }
+                dialogInterface.dismiss()
+            }
+            .setNegativeButton(getString(R.string.button_cancel)) { dialogInterface, _ ->
+                dialogInterface.dismiss()
+            }
+            .create()
+
+        dialog.show()
+    }
+
+    private fun addIngredientRow(ingredient: Ingredient) {
+        val inflater = LayoutInflater.from(requireContext())
+        val row = inflater.inflate(R.layout.row_ingredient, binding?.ingredientsContainer, false)
+        val text = row.findViewById<TextView>(R.id.ingredient_text)
+        val remove = row.findViewById<TextView>(R.id.remove_ingredient_text)
+        text.text = listOfNotNull(ingredient.amount?.toString(), ingredient.unit, ingredient.name).joinToString(" ")
+        remove.setOnClickListener {
+            // remove from list and container
+            binding?.ingredientsContainer?.removeView(row)
+            ingredientsList.remove(ingredient)
+        }
+        binding?.ingredientsContainer?.addView(row)
+    }
 
     private fun dismiss() {
         view?.findNavController()?.popBackStack()

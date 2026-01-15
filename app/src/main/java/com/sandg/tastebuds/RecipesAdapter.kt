@@ -27,6 +27,6 @@ class RecipesAdapter(
     }
 
     override fun onBindViewHolder(holder: RecipeRowViewHolder, position: Int) {
-        holder.bind(recipes[position], position)
+        holder.bind(recipes[position])
     }
 }

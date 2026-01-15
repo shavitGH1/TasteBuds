@@ -43,7 +43,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Recipe Name"
+                        android:text="@string/label_recipe_name"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
@@ -53,7 +53,7 @@
                         android:id="@+id/name_edit_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Enter recipe name"
+                        android:hint="@string/hint_recipe_name"
                         android:inputType="text"
                         android:background="@android:color/transparent"
                         android:textSize="16sp" />
@@ -61,7 +61,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Preparation Time Card -->
+            <!-- Description Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -78,53 +78,18 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Preparation Time"
+                        android:text="@string/label_description"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
                         android:layout_marginBottom="8dp" />
 
                     <EditText
-                        android:id="@+id/preparation_time_edit_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="e.g., 30 minutes"
-                        android:inputType="text"
-                        android:background="@android:color/transparent"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Ingredients Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Ingredients"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"
-                        android:layout_marginBottom="8dp" />
-
-                    <EditText
-                        android:id="@+id/ingredients_edit_text"
+                        android:id="@+id/description_edit_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="100dp"
-                        android:hint="List ingredients here..."
+                        android:hint="@string/hint_description"
                         android:inputType="textMultiLine"
                         android:gravity="top"
                         android:background="@android:color/transparent"
@@ -133,7 +98,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Preparation Method Card -->
+            <!-- Read-only: Preparation Time / Difficulty / Diet Restrictions -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -150,22 +115,134 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Preparation Method"
+                        android:text="@string/label_estimated_time"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
                         android:layout_marginBottom="8dp" />
 
-                    <EditText
-                        android:id="@+id/preparation_method_edit_text"
+                    <TextView
+                        android:id="@+id/preparation_time_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:minHeight="150dp"
-                        android:hint="Describe the preparation steps..."
-                        android:inputType="textMultiLine"
-                        android:gravity="top"
+                        android:text="@string/default_time"
+                        android:textSize="16sp"
                         android:background="@android:color/transparent"
-                        android:textSize="16sp" />
+                        android:paddingBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_difficulty"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/difficulty_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/default_difficulty"
+                        android:textSize="16sp"
+                        android:background="@android:color/transparent"
+                        android:paddingBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_diet_restrictions"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/diet_restrictions_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/default_diet"
+                        android:textSize="16sp"
+                        android:background="@android:color/transparent"
+                        android:paddingBottom="8dp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Ingredients Card (structured list + add button) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_ingredients"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:id="@+id/ingredients_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/add_ingredient_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/add_ingredient" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Steps Card (each step is an EditText added dynamically) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_preparation_steps"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:id="@+id/steps_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/add_step_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/add_step" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -187,7 +264,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Add a Picture"
+                        android:text="@string/label_add_picture"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
@@ -199,7 +276,7 @@
                         android:layout_height="200dp"
                         android:scaleType="centerCrop"
                         android:background="#E0E0E0"
-                        android:contentDescription="Recipe image"
+                        android:contentDescription="@string/recipe_image_desc"
                         app:srcCompat="@drawable/avatar" />
 
                     <Button
@@ -207,7 +284,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Select Image"
+                        android:text="@string/select_image"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 </LinearLayout>
@@ -222,7 +299,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:text="Save"
+        android:text="@string/save"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="#000000"

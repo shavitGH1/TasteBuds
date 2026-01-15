@@ -5,8 +5,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.Navigation
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.navigation.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.sandg.tastebuds.databinding.FragmentRecipesListBinding
 import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
@@ -25,9 +26,15 @@ class RecipesListFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        val layout = GridLayoutManager(context, 2)
+        // Use a vertical list so each item is a full-width recipe_row_layout card
+        val layout = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         binding?.recyclerView?.layoutManager = layout
         binding?.recyclerView?.setHasFixedSize(true)
+
+        // Add vertical spacing (12dp) between rows for a card-like gap
+        val density = resources.displayMetrics.density
+        val spacingPx = (12 * density).toInt()
+        binding?.recyclerView?.addItemDecoration(SpacingItemDecoration(spacingPx))
 
         binding?.progressBar?.visibility = View.VISIBLE
         Model.shared.getAllRecipes { recipes ->
@@ -41,14 +48,18 @@ class RecipesListFragment : Fragment() {
                 }
             }
             binding?.recyclerView?.adapter = adapter
+
+            // FAB: open Add Recipe
+            binding?.addRecipeFab?.setOnClickListener {
+                view?.findNavController()?.navigate(R.id.action_global_addRecipeFragment)
+            }
         }
 
     }
 
     private fun navigateToPinkFragment(recipe: Recipe) {
-        view?.let {
-            val action = RecipesListFragmentDirections.actionRecipesListFragmentToBlueFragment(recipe.name)
-            Navigation.findNavController(it).navigate(action)
-        }
+        view?.findNavController()?.navigate(
+            RecipesListFragmentDirections.actionRecipesListFragmentToBlueFragment(recipe.name)
+        )
     }
 }
