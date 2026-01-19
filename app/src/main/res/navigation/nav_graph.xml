@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/recipesListFragment">
+    app:startDestination="@id/homeHostFragment">
+
+    <fragment
+        android:id="@+id/homeHostFragment"
+        android:name="com.sandg.tastebuds.HomeHostFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home_host" />
 
     <fragment
         android:id="@+id/recipesListFragment"

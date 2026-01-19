@@ -21,6 +21,11 @@ class SharedRecipesViewModel : ViewModel() {
         }
     }
 
+    // Allow external callers (fragments) to replace the current recipes list
+    fun setRecipes(list: List<Recipe>) {
+        _recipes.postValue(list)
+    }
+
     fun refreshRecipe(id: String) {
         Model.shared.getRecipeById(id) { recipe ->
             val current = _recipes.value ?: emptyList()
@@ -54,5 +59,3 @@ class SharedRecipesViewModel : ViewModel() {
         }
     }
 }
-
-

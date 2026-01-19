@@ -136,4 +136,16 @@ class FirebaseModel {
                 completion(Recipe(id = id, name = ""))
             }
     }
+
+    // Return all recipes from Firestore regardless of current user
+    fun getAllRemoteRecipes(completion: RecipesCompletion) {
+        db.collection(RECIPES).get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.mapNotNull { it.data?.let { Recipe.fromJson(it) } }
+                completion(list)
+            }
+            .addOnFailureListener { _ ->
+                completion(emptyList())
+            }
+    }
 }
