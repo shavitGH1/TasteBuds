@@ -14,6 +14,7 @@ data class Recipe(
     val imageUrlString: String? = null,
 
     val publisher: String? = null,
+    val publisherId: String? = null,
     val ingredients: List<Ingredient> = listOf(),
     val steps: List<String> = listOf(),
     val time: Int? = null,
@@ -31,6 +32,9 @@ data class Recipe(
             val imageUrlString = json["imageUrlString"] as? String
 
             val publisher = json["publisher"] as? String
+            // Accept both server-side field names: 'publisher_id' (snake) and 'publisherId' (camel)
+            val publisherId = (json["publisher_id"] as? String)
+                ?: (json["publisherId"] as? String)
 
             val ingredients = (json["ingredients"] as? List<*>)?.mapNotNull { item ->
                 (item as? Map<*, *>)?.let { Ingredient.fromJson(it) }
@@ -56,6 +60,7 @@ data class Recipe(
                 isFavorite = isFavorite,
                 imageUrlString = imageUrlString,
                 publisher = publisher,
+                publisherId = publisherId,
                 ingredients = ingredients,
                 steps = steps,
                 time = time,
@@ -73,6 +78,7 @@ data class Recipe(
             "isFavorite" to isFavorite,
             "imageUrlString" to imageUrlString,
             "publisher" to publisher,
+            "publisher_id" to publisherId,
             "ingredients" to ingredients.map { it.toJson() },
             "steps" to steps,
             "time" to time,

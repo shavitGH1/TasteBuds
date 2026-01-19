@@ -51,4 +51,8 @@
     <!-- Accessibility -->
     <string name="favorite">Favorite</string>
 
+    <!-- Registration -->
+    <string name="button_register">Register</string>
+    <string name="button_sign_in_username">Sign in with username</string>
+
 </resources>

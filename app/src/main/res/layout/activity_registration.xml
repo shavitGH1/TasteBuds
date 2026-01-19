@@ -14,6 +14,7 @@
         android:src="@drawable/food_decoration"
         android:alpha="0.3"
         android:scaleType="centerInside"
+        android:contentDescription="decorative food"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -89,6 +90,16 @@
             android:layout_height="wrap_content"
             android:padding="24dp">
 
+            <!-- Mode switch: Sign In (username only) / Register (email+password) -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Register"
+                android:checked="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
             <!-- Username Input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/usernameInputLayout"
@@ -100,13 +111,35 @@
                 app:hintTextColor="#FF6B35"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/switchMode">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etUsername"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Email Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/emailInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Email"
+                app:boxBackgroundMode="outline"
+                app:boxStrokeColor="#FF6B35"
+                app:hintTextColor="#FF6B35"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/usernameInputLayout">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -124,7 +157,7 @@
                 app:passwordToggleTint="#FF6B35"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/usernameInputLayout">
+                app:layout_constraintTop_toBottomOf="@id/emailInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPassword"
@@ -148,9 +181,22 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/passwordInputLayout" />
 
+            <!-- Test Firebase connectivity button (developer) -->
+            <Button
+                android:id="@+id/btnTestFirebase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Test Firebase"
+                android:textSize="14sp"
+                android:paddingVertical="10dp"
+                android:layout_marginTop="12dp"
+                android:backgroundTint="#BDBDBD"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnGoToRecipes" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

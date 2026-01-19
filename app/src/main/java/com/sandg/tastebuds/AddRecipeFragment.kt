@@ -48,11 +48,14 @@ class AddRecipeFragment : Fragment() {
 
         binding?.saveRecipeButton?.setOnClickListener {
 
+            // Prevent double-clicks while saving
+            binding?.saveRecipeButton?.isEnabled = false
             binding?.loadingIndicator?.visibility = View.VISIBLE
 
             val recipeName: String = binding?.nameEditText?.text.toString().trim()
             if (recipeName.isEmpty()) {
                 binding?.loadingIndicator?.visibility = View.GONE
+                binding?.saveRecipeButton?.isEnabled = true
                 return@setOnClickListener
             }
 
@@ -80,12 +83,24 @@ class AddRecipeFragment : Fragment() {
             val descriptionText = binding?.descriptionEditText?.text?.toString()?.trim()
             val descriptionValue = if (descriptionText.isNullOrBlank()) null else descriptionText
 
+            // Determine publisher email and uid (prefer FirebaseAuth current user, else stored prefs)
+            val firebaseUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+            val publisherEmail = firebaseUser?.email ?: run {
+                val prefs = requireContext().getSharedPreferences("auth", android.content.Context.MODE_PRIVATE)
+                prefs.getString("email", null)
+            }
+            val publisherUid = firebaseUser?.uid ?: run {
+                val prefs = requireContext().getSharedPreferences("auth", android.content.Context.MODE_PRIVATE)
+                prefs.getString("uid", null)
+            }
+
             val recipe = Recipe(
                 id = recipeId,
                 name = recipeName,
                 isFavorite = false,
                 imageUrlString = imageUrl,
-                publisher = null,
+                publisher = publisherEmail,
+                publisherId = publisherUid,
                 ingredients = ingredientsList.toList(),
                 steps = stepsList.toList(),
                 time = time,
@@ -95,7 +110,12 @@ class AddRecipeFragment : Fragment() {
             )
 
             Model.shared.addRecipe(recipe) {
-                dismiss()
+                // Ensure UI updates happen on main thread and hide loading indicator before dismiss
+                activity?.runOnUiThread {
+                    binding?.loadingIndicator?.visibility = View.GONE
+                    binding?.saveRecipeButton?.isEnabled = true
+                    dismiss()
+                }
             }
         }
 
