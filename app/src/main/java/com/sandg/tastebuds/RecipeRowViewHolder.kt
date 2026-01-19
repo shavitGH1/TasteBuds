@@ -19,16 +19,70 @@ class RecipeRowViewHolder(
                 listener?.onRecipeItemClick(recipe)
             }
         }
+
+        binding.favoriteImage.setOnClickListener {
+            recipe?.let { r ->
+                val toggled = r.copy(isFavorite = !r.isFavorite)
+
+                // Optimistic UI update
+                recipe = toggled
+                updateFavoriteIcon(toggled.isFavorite)
+                animateFavoriteToggle(toggled.isFavorite)
+
+                // Forward the action to the fragment/viewmodel
+                listener?.onToggleFavorite(r)
+            }
+        }
     }
 
-    fun bind(recipe: Recipe, position: Int) {
+    fun bind(recipe: Recipe) {
         this.recipe = recipe
         binding.nameTextView.text = recipe.name
-        binding.authorTextView.text = "Added by ${recipe.id}"
+        binding.authorTextView.text = recipe.publisher ?: ""
+
+        val timeText = recipe.time?.let { "$it min" } ?: ""
+        val difficultyText = recipe.difficulty ?: ""
+        binding.metaTextView.text = listOf(timeText, difficultyText).filter { it.isNotEmpty() }.joinToString(" • ")
+
+        updateFavoriteIcon(recipe.isFavorite)
+
         Log.v("TAG", "Loading image from URL: ${recipe.imageUrlString}")
         Picasso
             .get()
             .load(recipe.imageUrlString)
+            .placeholder(R.drawable.avatar)
             .into(binding.imageView)
+    }
+
+    private fun updateFavoriteIcon(isFavorite: Boolean) {
+        if (isFavorite) {
+            binding.favoriteImage.setImageResource(R.drawable.ic_favorite_filled)
+            binding.favoriteImage.alpha = 1.0f
+        } else {
+            binding.favoriteImage.setImageResource(R.drawable.ic_favorite_border)
+            binding.favoriteImage.alpha = 0.9f
+        }
+    }
+
+    private fun animateFavoriteToggle(isFavorite: Boolean) {
+        val iv = binding.favoriteImage
+        iv.animate().cancel()
+
+        iv.setImageResource(if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
+
+        iv.scaleX = 0.8f
+        iv.scaleY = 0.8f
+        iv.animate()
+            .scaleX(1.2f)
+            .scaleY(1.2f)
+            .setDuration(140)
+            .withEndAction {
+                iv.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(140)
+                    .start()
+            }
+            .start()
     }
 }

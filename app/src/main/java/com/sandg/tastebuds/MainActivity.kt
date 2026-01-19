@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             NavigationUI.setupActionBarWithNavController(this, it)
         }
 
-        // Listen for destination changes to update the centered title
+        // Update centered title on destination changes
         navController?.addOnDestinationChangedListener { _, destination, _ ->
             supportActionBar?.let { actionBar ->
                 actionBar.setDisplayShowCustomEnabled(true)
@@ -70,6 +70,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.menu, menu)
         return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val addItem = menu?.findItem(R.id.main_menu_add)
+        val currentId = navController?.currentDestination?.id
+        if (currentId == R.id.recipesListFragment) {
+            addItem?.isVisible = false
+        } else {
+            addItem?.isVisible = true
+        }
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

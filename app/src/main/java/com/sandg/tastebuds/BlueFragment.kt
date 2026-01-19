@@ -26,7 +26,6 @@ class BlueFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         binding = FragmentBlueBinding.inflate(inflater, container, false)
         textView = binding?.textView
         textView?.text = title ?: "Oops! What just happened? 😲"
