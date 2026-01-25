@@ -3,6 +3,7 @@ package com.sandg.tastebuds
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
@@ -83,11 +84,32 @@ class ManageUserFragment : Fragment() {
         btnChangePassword.setOnClickListener { showChangePasswordDialog() }
 
         btnSignOut.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            activity?.recreate()
+            performSignOut()
         }
 
         return root
+    }
+
+    private fun performSignOut() {
+        // Firebase sign out
+        FirebaseAuth.getInstance().signOut()
+
+        // Clear locally stored auth credentials
+        try {
+            val prefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE)
+            prefs.edit().clear().apply()
+        } catch (_: Exception) {
+        }
+
+        // Optionally clear user_prefs (avatar path) if you want to remove local avatar on sign out
+        // val userPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        // userPrefs.edit().clear().apply()
+
+        // Navigate back to RegistrationActivity and clear back stack so user cannot go back
+        val intent = Intent(requireContext(), RegistrationActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
+        activity?.finish()
     }
 
     private fun showAvatarOptions() {
@@ -118,9 +140,9 @@ class ManageUserFragment : Fragment() {
 
     // New: handle selected avatar and save locally (internal storage) instead of uploading to Firebase
     private fun handleAvatarSelected(uri: Uri) {
-        Toast.makeText(requireContext(), "Saving avatar locally...", Toast.LENGTH_SHORT).show()
+        showStyledToast("Saving avatar locally...", null)
         val user = FirebaseAuth.getInstance().currentUser ?: run {
-            Toast.makeText(requireContext(), "Not signed in", Toast.LENGTH_SHORT).show()
+            showStyledToast("Not signed in", android.R.drawable.ic_dialog_alert)
             return
         }
 
@@ -144,9 +166,9 @@ class ManageUserFragment : Fragment() {
                     }
                 }
 
-                Toast.makeText(requireContext(), "Avatar saved locally", Toast.LENGTH_SHORT).show()
+                showStyledToast("Avatar saved locally", android.R.drawable.ic_menu_send)
             } else {
-                Toast.makeText(requireContext(), "Failed to save avatar", Toast.LENGTH_SHORT).show()
+                showStyledToast("Failed to save avatar", android.R.drawable.ic_dialog_alert)
             }
         } catch (e: Exception) {
             // fallback: try to copy stream from uri to internal file
@@ -171,16 +193,16 @@ class ManageUserFragment : Fragment() {
                                 iv.setImageURI(Uri.fromFile(file))
                             }
                         }
-                        Toast.makeText(requireContext(), "Avatar saved locally", Toast.LENGTH_SHORT).show()
+                        showStyledToast("Avatar saved locally", android.R.drawable.ic_menu_send)
                     } finally {
                         out?.close()
                         input.close()
                     }
                 } ?: run {
-                    Toast.makeText(requireContext(), "Failed to read selected image", Toast.LENGTH_SHORT).show()
+                    showStyledToast("Failed to read selected image", android.R.drawable.ic_dialog_alert)
                 }
             } catch (ex: IOException) {
-                Toast.makeText(requireContext(), "Failed to save avatar", Toast.LENGTH_SHORT).show()
+                showStyledToast("Failed to save avatar", android.R.drawable.ic_dialog_alert)
             }
         }
     }
@@ -199,6 +221,37 @@ class ManageUserFragment : Fragment() {
             file
         } catch (e: Exception) {
             null
+        }
+    }
+
+    // Personalized styled toast (adapted from RegistrationActivity.showStyledToast)
+    private fun showStyledToast(message: String, iconRes: Int?) {
+        try {
+            val inflater = LayoutInflater.from(requireContext())
+            val parent = requireActivity().findViewById<ViewGroup>(android.R.id.content)
+            val layout = inflater.inflate(R.layout.custom_toast, parent, false)
+            val tv = layout.findViewById<TextView>(R.id.toast_text)
+            val iv = layout.findViewById<ImageView>(R.id.toast_icon)
+            tv.text = message
+            if (iconRes != null) {
+                iv.setImageResource(iconRes)
+                iv.visibility = View.VISIBLE
+            } else {
+                iv.visibility = View.GONE
+            }
+
+            val toast = Toast(requireContext())
+            toast.duration = if (iconRes == android.R.drawable.ic_menu_send) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
+            try {
+                val anim = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.toast_fade)
+                layout.startAnimation(anim)
+            } catch (_: Exception) {
+            }
+            toast.view = layout
+            toast.setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+            toast.show()
+        } catch (_: Exception) {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -231,29 +284,28 @@ class ManageUserFragment : Fragment() {
 
             // Disable button to prevent double-click
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-            changePassword(old, nw) { success ->
+            changePassword(old, nw) { success, msg ->
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
                 if (success) {
-                    Toast.makeText(requireContext(), "Password changed", Toast.LENGTH_SHORT).show()
+                    showStyledToast(msg ?: "Password changed", android.R.drawable.ic_menu_send)
                     dialog.dismiss()
                 } else {
-                    Toast.makeText(requireContext(), "Failed to change password", Toast.LENGTH_SHORT).show()
+                    // If the failure is due to wrong old password, show the exact message
+                    showStyledToast(msg ?: "Failed to change password", android.R.drawable.ic_dialog_alert)
                 }
             }
         }
     }
 
-    private fun changePassword(oldPassword: String, newPassword: String, onComplete: (Boolean) -> Unit) {
+    private fun changePassword(oldPassword: String, newPassword: String, onComplete: (Boolean, String?) -> Unit) {
         val user = FirebaseAuth.getInstance().currentUser ?: run {
-            Toast.makeText(requireContext(), "Not signed in", Toast.LENGTH_SHORT).show()
-            onComplete(false)
+            onComplete(false, "Not signed in")
             return
         }
 
         val email = user.email
         if (email.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "No email to reauthenticate", Toast.LENGTH_SHORT).show()
-            onComplete(false)
+            onComplete(false, "No email to reauthenticate")
             return
         }
 
@@ -262,13 +314,14 @@ class ManageUserFragment : Fragment() {
             if (authTask.isSuccessful) {
                 user.updatePassword(newPassword).addOnCompleteListener { updateTask ->
                     if (updateTask.isSuccessful) {
-                        onComplete(true)
+                        onComplete(true, "Password changed successfully")
                     } else {
-                        onComplete(false)
+                        onComplete(false, "Failed to update password")
                     }
                 }
             } else {
-                onComplete(false)
+                // reauthentication failed — most likely old password incorrect
+                onComplete(false, "Old password not correct - could not update password")
             }
         }
     }
