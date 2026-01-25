@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
@@ -30,10 +31,22 @@ class MainActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            // Apply only top inset here — fragments/layouts will manage bottom space (e.g., bottom nav)
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
             insets
         }
         setupTopBar()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh recipes when the activity becomes visible (merges local + remote)
+        try {
+            val vm = ViewModelProvider(this)[SharedRecipesViewModel::class.java]
+            vm.reloadAll()
+        } catch (_: Exception) {
+            // If ViewModel isn't available for some reason, ignore silently
+        }
     }
 
     private fun setupTopBar() {
@@ -44,18 +57,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Update centered title on destination changes
-        navController?.addOnDestinationChangedListener { _, destination, _ ->
+        navController?.addOnDestinationChangedListener { _, destination, arguments ->
+            // If inside the HomeHostFragment, the visible child determines the title.
+            val label = when (destination.id) {
+                R.id.homeHostFragment -> {
+                    // Try to get the child title from arguments (child fragment may pass TITLE_KEY)
+                    arguments?.getString("TITLE_KEY") ?: "Home"
+                }
+                else -> destination.label?.toString() ?: ""
+            }
+
             supportActionBar?.let { actionBar ->
                 actionBar.setDisplayShowCustomEnabled(true)
                 actionBar.setDisplayShowTitleEnabled(false)
 
                 val titleTextView = TextView(this).apply {
-                    text = destination.label
+                    text = label
                     textSize = 20f
                     setTextColor(getColor(android.R.color.black))
                     gravity = Gravity.CENTER
                     layoutParams = Toolbar.LayoutParams(
-                        Toolbar.LayoutParams.WRAP_CONTENT,
+                        Toolbar.LayoutParams.MATCH_PARENT,
                         Toolbar.LayoutParams.WRAP_CONTENT
                     ).apply {
                         gravity = Gravity.CENTER
@@ -63,6 +85,25 @@ class MainActivity : AppCompatActivity() {
                 }
                 actionBar.customView = titleTextView
             }
+        }
+    }
+
+    // Public helper for child fragments to set the title when needed
+    fun setActionBarTitle(title: String) {
+        supportActionBar?.let { actionBar ->
+            actionBar.setDisplayShowCustomEnabled(true)
+            actionBar.setDisplayShowTitleEnabled(false)
+            val titleTextView = TextView(this).apply {
+                text = title
+                textSize = 20f
+                setTextColor(getColor(android.R.color.black))
+                gravity = Gravity.CENTER
+                layoutParams = Toolbar.LayoutParams(
+                    Toolbar.LayoutParams.MATCH_PARENT,
+                    Toolbar.LayoutParams.WRAP_CONTENT
+                ).apply { gravity = Gravity.CENTER }
+            }
+            actionBar.customView = titleTextView
         }
     }
 

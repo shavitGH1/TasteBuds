@@ -1,6 +1,5 @@
 package com.sandg.tastebuds
 
-import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import com.sandg.tastebuds.databinding.RecipeRowLayoutBinding
 import com.sandg.tastebuds.models.Recipe
@@ -29,8 +28,8 @@ class RecipeRowViewHolder(
                 updateFavoriteIcon(toggled.isFavorite)
                 animateFavoriteToggle(toggled.isFavorite)
 
-                // Forward the action to the fragment/viewmodel
-                listener?.onToggleFavorite(r)
+                // Forward the action to the fragment/viewmodel with the desired state
+                listener?.onToggleFavorite(toggled)
             }
         }
     }
@@ -46,7 +45,6 @@ class RecipeRowViewHolder(
 
         updateFavoriteIcon(recipe.isFavorite)
 
-        Log.v("TAG", "Loading image from URL: ${recipe.imageUrlString}")
         Picasso
             .get()
             .load(recipe.imageUrlString)

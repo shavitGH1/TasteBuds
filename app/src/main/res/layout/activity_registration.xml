@@ -181,19 +181,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/passwordInputLayout" />
 
-            <!-- Test Firebase connectivity button (developer) -->
-            <Button
-                android:id="@+id/btnTestFirebase"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Test Firebase"
-                android:textSize="14sp"
-                android:paddingVertical="10dp"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="#BDBDBD"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnGoToRecipes" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -119,4 +119,11 @@ class Model private constructor() {
             }
         }.start()
     }
+
+    // Expose a direct remote fetch of all recipes (no local-first logic)
+    fun getAllRemoteRecipes(completion: RecipesCompletion) {
+        firebaseModel.getAllRemoteRecipes { list ->
+            completion(list)
+        }
+    }
 }
