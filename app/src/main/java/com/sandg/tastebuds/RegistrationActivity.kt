@@ -14,7 +14,6 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.firestore
 import com.sandg.tastebuds.databinding.ActivityRegistrationBinding
 import com.sandg.tastebuds.models.FirebaseModel
-import com.sandg.tastebuds.models.Recipe
 import android.view.LayoutInflater
 import android.widget.ImageView
 import android.widget.TextView
@@ -106,37 +105,6 @@ class RegistrationActivity : AppCompatActivity() {
                                             btnNext.isEnabled = true
                                             return@createOrUpdateUserDocument
                                         }
-
-                                        val r1 = Recipe(
-                                            id = "sample_${uid}_1",
-                                            name = "Sample Recipe 1",
-                                            isFavorite = false,
-                                            imageUrlString = null,
-                                            publisher = username,
-                                            publisherId = uid,
-                                            ingredients = listOf(),
-                                            steps = listOf("Do this", "Then that"),
-                                            time = null,
-                                            difficulty = null,
-                                            dietRestrictions = listOf(),
-                                            description = null
-                                        )
-                                        val r2 = Recipe(
-                                            id = "sample_${uid}_2",
-                                            name = "Sample Recipe 2",
-                                            isFavorite = false,
-                                            imageUrlString = null,
-                                            publisher = username,
-                                            publisherId = uid,
-                                            ingredients = listOf(),
-                                            steps = listOf("Mix", "Bake"),
-                                            time = null,
-                                            difficulty = null,
-                                            dietRestrictions = listOf(),
-                                            description = null
-                                        )
-                                        firebaseModel.addRecipe(r1) { }
-                                        firebaseModel.addRecipe(r2) { }
 
                                         saveCredentialsAndContinue(username, email, uid)
                                     }

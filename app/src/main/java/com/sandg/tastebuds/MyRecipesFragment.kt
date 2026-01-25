@@ -10,10 +10,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
 import com.sandg.tastebuds.models.Recipe
 
 class MyRecipesFragment : Fragment() {
-
     private val sharedVm: SharedRecipesViewModel by activityViewModels()
     private lateinit var adapter: RecipesAdapter
 
@@ -23,6 +23,7 @@ class MyRecipesFragment : Fragment() {
 
         recycler.layoutManager = LinearLayoutManager(requireContext())
         adapter = RecipesAdapter()
+
         adapter.listener = object : OnItemClickListener {
             override fun onRecipeItemClick(recipe: Recipe) {
                 val args = bundleOf("recipeId" to recipe.id)
@@ -33,10 +34,11 @@ class MyRecipesFragment : Fragment() {
                 sharedVm.toggleFavorite(recipe)
             }
         }
+
         recycler.adapter = adapter
 
         sharedVm.recipes.observe(viewLifecycleOwner) { list ->
-            val currentUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+            val currentUid = FirebaseAuth.getInstance().currentUser?.uid
             val filtered = list.filter { r -> (r.publisherId == currentUid) || r.isFavorite }
             adapter.submitList(filtered)
         }

@@ -28,8 +28,8 @@ class RecipeRowViewHolder(
                 updateFavoriteIcon(toggled.isFavorite)
                 animateFavoriteToggle(toggled.isFavorite)
 
-                // Forward the action to the fragment/viewmodel
-                listener?.onToggleFavorite(r)
+                // Forward the action to the fragment/viewmodel with the desired state
+                listener?.onToggleFavorite(toggled)
             }
         }
     }

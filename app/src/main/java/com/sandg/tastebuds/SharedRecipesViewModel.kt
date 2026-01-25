@@ -39,17 +39,16 @@ class SharedRecipesViewModel : ViewModel() {
         }
     }
 
-    fun toggleFavorite(recipe: Recipe) {
-        val toggled = recipe.copy(isFavorite = !recipe.isFavorite)
-
+    // Accept already toggled recipe to avoid double-toggle issues from optimistic UI
+    fun toggleFavorite(toggledRecipe: Recipe) {
         val current = _recipes.value ?: emptyList()
         val newList = current.toMutableList()
-        val idx = newList.indexOfFirst { it.id == toggled.id }
-        if (idx >= 0) newList[idx] = toggled else newList.add(toggled)
+        val idx = newList.indexOfFirst { it.id == toggledRecipe.id }
+        if (idx >= 0) newList[idx] = toggledRecipe else newList.add(toggledRecipe)
         _recipes.postValue(newList)
 
-        Model.shared.addRecipe(toggled) {
-            Model.shared.getRecipeById(toggled.id) { refreshed ->
+        Model.shared.addRecipe(toggledRecipe) {
+            Model.shared.getRecipeById(toggledRecipe.id) { refreshed ->
                 val curr = _recipes.value ?: emptyList()
                 val mut = curr.toMutableList()
                 val i = mut.indexOfFirst { it.id == refreshed.id }
