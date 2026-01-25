@@ -15,6 +15,12 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
 
     var listener: OnItemClickListener? = null
 
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long = try { getItem(position).id.hashCode().toLong() } catch (_: Exception) { RecyclerView.NO_ID }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GridViewHolder {
         val inflator = LayoutInflater.from(parent.context)
         val view = inflator.inflate(R.layout.recipe_grid_item, parent, false)

@@ -8,7 +8,7 @@
         android:id="@+id/homeChildContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="104dp"
+        android:paddingBottom="12dp"
         android:clipToPadding="false" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

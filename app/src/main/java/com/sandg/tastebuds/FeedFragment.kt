@@ -19,11 +19,12 @@ class FeedFragment : Fragment() {
     private val sharedVm: SharedRecipesViewModel by activityViewModels()
     private lateinit var adapter: GridRecipesAdapter
     private val firebaseModel = FirebaseModel()
+    private lateinit var swipe: SwipeRefreshLayout
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_feed, container, false)
         val recycler = root.findViewById<RecyclerView>(R.id.recyclerView)
-        val swipe = root.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+        swipe = root.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
 
         val span = 2
         recycler.layoutManager = GridLayoutManager(requireContext(), span)
@@ -38,7 +39,12 @@ class FeedFragment : Fragment() {
                 sharedVm.toggleFavorite(recipe)
             }
         }
+        // ensure adapter stable ids (adapter already sets this, but reinforce)
+        adapter.setHasStableIds(true)
         recycler.adapter = adapter
+
+        // Prevent content from being clipped by bottom nav
+        recycler.clipToPadding = false
 
         // Load initial data from shared viewmodel
         sharedVm.recipes.observe(viewLifecycleOwner) { list ->
@@ -46,12 +52,25 @@ class FeedFragment : Fragment() {
         }
 
         swipe.setOnRefreshListener {
-            com.sandg.tastebuds.models.Model.shared.getAllRemoteRecipes { list ->
-                sharedVm.setRecipes(list)
+            // Use shared viewmodel to reload both local and remote recipes and merge them
+            swipe.isRefreshing = true
+            sharedVm.reloadAll {
                 swipe.isRefreshing = false
             }
         }
 
         return root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Automatically refresh the feed when the fragment becomes visible
+        // show spinner while reloading
+        swipe.post {
+            swipe.isRefreshing = true
+            sharedVm.reloadAll {
+                swipe.isRefreshing = false
+            }
+        }
     }
 }

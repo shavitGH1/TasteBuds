@@ -68,7 +68,12 @@ class FirebaseModel {
                 .addOnCompleteListener { result ->
                     when (result.isSuccessful) {
                         true -> {
-                            val all = result.result.map { it.data }
+                            // Include document ID as 'id' if missing
+                            val all = result.result.map { doc ->
+                                val data = (doc.data ?: emptyMap<String, Any?>()).toMutableMap()
+                                if (!data.containsKey("id")) data["id"] = doc.id
+                                data
+                            }
                             val filtered = all.filter { doc ->
                                 val pid1 = doc["publisher_id"] as? String
                                 val pid2 = doc["publisherId"] as? String
@@ -89,7 +94,11 @@ class FirebaseModel {
                 .addOnCompleteListener { result ->
                     when (result.isSuccessful) {
                         true -> {
-                            val list = result.result.map { Recipe.fromJson(it.data) }
+                            val list = result.result.map { doc ->
+                                val data = (doc.data ?: emptyMap<String, Any?>()).toMutableMap()
+                                if (!data.containsKey("id")) data["id"] = doc.id
+                                Recipe.fromJson(data)
+                            }
                             completion(list)
                         }
                         false -> {
@@ -127,7 +136,9 @@ class FirebaseModel {
         db.collection(RECIPES).document(id).get()
             .addOnSuccessListener { doc ->
                 if (doc != null && doc.data != null) {
-                    completion(Recipe.fromJson(doc.data!!))
+                    val data = (doc.data ?: emptyMap<String, Any?>()).toMutableMap()
+                    if (!data.containsKey("id")) data["id"] = doc.id
+                    completion(Recipe.fromJson(data))
                 } else {
                     completion(Recipe(id = id, name = ""))
                 }
@@ -141,7 +152,13 @@ class FirebaseModel {
     fun getAllRemoteRecipes(completion: RecipesCompletion) {
         db.collection(RECIPES).get()
             .addOnSuccessListener { snap ->
-                val list = snap.documents.mapNotNull { it.data?.let { Recipe.fromJson(it) } }
+                val list = snap.documents.mapNotNull { doc ->
+                    doc.data?.let {
+                        val data = (it as Map<String, Any?>).toMutableMap()
+                        if (!data.containsKey("id")) data["id"] = doc.id
+                        Recipe.fromJson(data)
+                    }
+                }
                 completion(list)
             }
             .addOnFailureListener { _ ->

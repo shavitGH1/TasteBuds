@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
@@ -35,6 +36,17 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         setupTopBar()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh recipes when the activity becomes visible (merges local + remote)
+        try {
+            val vm = ViewModelProvider(this)[SharedRecipesViewModel::class.java]
+            vm.reloadAll()
+        } catch (_: Exception) {
+            // If ViewModel isn't available for some reason, ignore silently
+        }
     }
 
     private fun setupTopBar() {

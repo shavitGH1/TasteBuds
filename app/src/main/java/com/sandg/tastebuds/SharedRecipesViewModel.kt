@@ -1,24 +1,80 @@
 package com.sandg.tastebuds
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
+import com.sandg.tastebuds.dao.AppLocalDB
 
 class SharedRecipesViewModel : ViewModel() {
 
     private val _recipes = MutableLiveData<List<Recipe>>(emptyList())
     val recipes: LiveData<List<Recipe>> = _recipes
 
+    companion object {
+        private const val TAG = "SharedRecipesVM"
+    }
+
     init {
         reloadAll()
     }
 
-    fun reloadAll() {
-        Model.shared.getAllRecipes { list ->
-            _recipes.postValue(list)
-        }
+    fun reloadAll(onComplete: (() -> Unit)? = null) {
+        // 1) Load local recipes immediately so UI shows saved items on startup
+        Thread {
+            try {
+                val local = try {
+                    AppLocalDB.db.recipeDao.getAllRecipes()
+                } catch (e: Exception) {
+                    emptyList<Recipe>()
+                }
+
+                Log.d(TAG, "reloadAll: local count=${local.size} ids=${local.map { it.id }}")
+
+                if (local.isNotEmpty()) {
+                    _recipes.postValue(local)
+                }
+
+                // 2) Fetch remote recipes and merge with local (union)
+                Model.shared.getAllRemoteRecipes { remoteList ->
+                    Log.d(TAG, "reloadAll: remote count=${remoteList.size} ids=${remoteList.map { it.id }}")
+                    try {
+                        val map = mutableMapOf<String, Recipe>()
+                        // start with remote
+                        for (r in remoteList) map[r.id] = r
+                        // merge local, preserving favorites
+                        for (l in local) {
+                            val existing = map[l.id]
+                            if (existing != null) {
+                                val merged = existing.copy(isFavorite = existing.isFavorite || l.isFavorite)
+                                map[l.id] = merged
+                            } else {
+                                map[l.id] = l
+                            }
+                        }
+                        val merged = map.values.toList()
+                        Log.d(TAG, "reloadAll: merged count=${merged.size} ids=${merged.map { it.id }}")
+                        _recipes.postValue(merged)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "reloadAll: merge error", e)
+                        // On error, post remote list fallback
+                        _recipes.postValue(remoteList)
+                    }
+
+                    // notify caller that reload finished
+                    onComplete?.invoke()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "reloadAll: unexpected error", e)
+                // in case of unexpected error, try remote only
+                Model.shared.getAllRemoteRecipes { remote ->
+                    _recipes.postValue(remote)
+                    onComplete?.invoke()
+                }
+            }
+        }.start()
     }
 
     // Allow external callers (fragments) to replace the current recipes list
