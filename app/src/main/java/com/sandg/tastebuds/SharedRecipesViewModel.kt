@@ -8,6 +8,10 @@ import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
 import com.sandg.tastebuds.dao.AppLocalDB
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.DocumentChange
 
 class SharedRecipesViewModel : ViewModel() {
 
@@ -19,27 +23,46 @@ class SharedRecipesViewModel : ViewModel() {
     }
 
     private var lastAuthUid: String? = FirebaseAuth.getInstance().currentUser?.uid
+    private var favListener: ListenerRegistration? = null
 
     // Auth state listener will trigger reload only when a user signs in or the UID changes.
     // We deliberately avoid reloading on sign-out to prevent clearing optimistic/local favorites from memory.
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
         val uid = auth.currentUser?.uid
         if (uid == lastAuthUid) return@AuthStateListener
-        // update last seen uid
+        // unregister previous listener if any
+        if (lastAuthUid != null) {
+            try { favListener?.remove() } catch (_: Exception) { }
+            favListener = null
+        }
         lastAuthUid = uid
         if (!uid.isNullOrEmpty()) {
-            // user signed in or changed user -> apply per-user favorites immediately (background) and reload to refresh data
-            Thread { applyFavoritesForCurrentUser() }.start()
-            reloadAll { applyFavoritesForCurrentUser() }
+            // register a realtime listener for this user's favorites
+            registerFavoritesListener(uid)
+            // user signed in or changed user -> fetch remote favorites into local DB, apply them, then reload
+            fetchAndApplyRemoteFavorites(uid) {
+                // After remote favorites fetched into local DB, reload and re-apply
+                reloadAll { applyFavoritesForUser(uid) }
+            }
         }
-        // if uid is null (signed out) do nothing — keep in-memory recipes so the UI doesn't flash/clear favorites
     }
 
     init {
         // Initial load and apply favorites for current user when load completes
-        reloadAll { applyFavoritesForCurrentUser() }
+        val initialUid = FirebaseAuth.getInstance().currentUser?.uid
+        if (!initialUid.isNullOrEmpty()) {
+            registerFavoritesListener(initialUid)
+        }
+        reloadAll { if (!initialUid.isNullOrEmpty()) applyFavoritesForUser(initialUid) }
         // Listen for auth changes (login/logout) so we can re-apply per-user favorites when a user signs in
         FirebaseAuth.getInstance().addAuthStateListener(authStateListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        try { FirebaseAuth.getInstance().removeAuthStateListener(authStateListener) } catch (_: Exception) { }
+        try { favListener?.remove() } catch (_: Exception) { }
+        favListener = null
     }
 
     fun reloadAll(onComplete: (() -> Unit)? = null) {
@@ -197,10 +220,13 @@ class SharedRecipesViewModel : ViewModel() {
                     if (updated.isFavorite) {
                         AppLocalDB.db.favoriteDao.upsert(com.sandg.tastebuds.models.Favorite(recipeId = updated.id, userId = currentUid, isFavorite = true))
                         Log.d(TAG, "toggleFavorite: upserted favorite for user=$currentUid recipe=${updated.id}")
+                        // push to remote as well
+                        try { pushFavoriteToRemote(currentUid, updated.id) } catch (e: Exception) { Log.e(TAG, "pushFavoriteToRemote failed", e) }
                     } else {
                         AppLocalDB.db.favoriteDao.deleteFavorite(updated.id, currentUid)
                         Log.d(TAG, "toggleFavorite: deleted favorite for user=$currentUid recipe=${updated.id}")
-                    }
+                        try { deleteFavoriteFromRemote(currentUid, updated.id) } catch (e: Exception) { Log.e(TAG, "deleteFavoriteFromRemote failed", e) }
+                     }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "toggleFavorite: local persist failed", e)
@@ -215,22 +241,94 @@ class SharedRecipesViewModel : ViewModel() {
             // No immediate remote reload here — rely on optimistic UI + local persistence to keep the favorite stable.
             // After persisting favorite state locally, ensure in-memory recipes reflect DB favorites for this user
             Log.d(TAG, "toggleFavorite: applying favorites after persist for user=$currentUid")
-            applyFavoritesForCurrentUser()
+            currentUid?.let { applyFavoritesForUser(it) }
         }.start()
     }
 
-    // Read Favorite rows for current user and apply the flags to the in-memory recipes list
-    private fun applyFavoritesForCurrentUser() {
+    // --- Firestore helpers ---
+    private val fStore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
+
+    private fun pushFavoriteToRemote(uid: String, recipeId: String) {
         try {
-            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+            val docRef = fStore.collection("users").document(uid).collection("favorites").document(recipeId)
+            val payload = mapOf("isFavorite" to true, "updatedAt" to FieldValue.serverTimestamp())
+            docRef.set(payload).addOnSuccessListener {
+                Log.d(TAG, "pushFavoriteToRemote: set remote favorite $recipeId for $uid")
+            }.addOnFailureListener { e ->
+                Log.e(TAG, "pushFavoriteToRemote failed", e)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "pushFavoriteToRemote exception", e)
+        }
+    }
+
+    private fun deleteFavoriteFromRemote(uid: String, recipeId: String) {
+        try {
+            val docRef = fStore.collection("users").document(uid).collection("favorites").document(recipeId)
+            docRef.delete().addOnSuccessListener {
+                Log.d(TAG, "deleteFavoriteFromRemote: deleted remote favorite $recipeId for $uid")
+            }.addOnFailureListener { e ->
+                Log.e(TAG, "deleteFavoriteFromRemote failed", e)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteFavoriteFromRemote exception", e)
+        }
+    }
+
+    private fun fetchAndApplyRemoteFavorites(uid: String, onComplete: (() -> Unit)? = null) {
+        try {
+            val col = fStore.collection("users").document(uid).collection("favorites")
+            col.get().addOnSuccessListener { snapshot ->
+                Thread {
+                    try {
+                        val favIds = snapshot.documents.mapNotNull { it.id }
+                        val favSet = favIds.toSet()
+
+                        // Upsert remote favorites into local DB
+                        favIds.forEach { recipeId ->
+                            try {
+                                AppLocalDB.db.favoriteDao.upsert(com.sandg.tastebuds.models.Favorite(recipeId = recipeId, userId = uid, isFavorite = true))
+                            } catch (e: Exception) { /* ignore per-item failures */ }
+                        }
+
+                        // Read local favorites for this user and push any local-only favorites to remote (two-way sync: union)
+                        val localFavs = try { AppLocalDB.db.favoriteDao.getFavoritesForUser(uid).mapNotNull { it.recipeId } } catch (_: Exception) { emptyList<String>() }
+                        val localOnly = localFavs.filter { it !in favSet }
+                        localOnly.forEach { localId ->
+                            try {
+                                pushFavoriteToRemote(uid, localId)
+                            } catch (e: Exception) { Log.e(TAG, "fetchAndApplyRemoteFavorites: push local-only failed for $localId", e) }
+                        }
+
+                        // Apply favorites to in-memory list
+                        applyFavoritesForUser(uid)
+                     } catch (e: Exception) {
+                         Log.e(TAG, "fetchAndApplyRemoteFavorites: apply failed", e)
+                     } finally {
+                         onComplete?.invoke()
+                     }
+                 }.start()
+             }.addOnFailureListener { e ->
+                 Log.e(TAG, "fetchAndApplyRemoteFavorites failed", e)
+                 onComplete?.invoke()
+             }
+         } catch (e: Exception) {
+             Log.e(TAG, "fetchAndApplyRemoteFavorites exception", e)
+             onComplete?.invoke()
+         }
+     }
+
+    // Apply favorites for a specific user id (avoids relying on FirebaseAuth.currentUser during async operations)
+    private fun applyFavoritesForUser(uid: String) {
+        try {
             val favMap = try {
-                AppLocalDB.db.favoriteDao.getFavoritesForUser(uid).map { it.recipeId to it.isFavorite }.toMap()
+                AppLocalDB.db.favoriteDao.getFavoritesForUser(uid).associate { it.recipeId to it.isFavorite }
             } catch (e: Exception) {
-                Log.e(TAG, "applyFavoritesForCurrentUser: failed to read favorites for user=$uid", e)
+                Log.e(TAG, "applyFavoritesForUser: failed to read favorites for user=$uid", e)
                 emptyMap<String, Boolean>()
             }
 
-            Log.d(TAG, "applyFavoritesForCurrentUser: user=$uid favCount=${favMap.size} favKeys=${favMap.keys}")
+            Log.d(TAG, "applyFavoritesForUser: user=$uid favCount=${favMap.size} favKeys=${favMap.keys}")
 
             val current = _recipes.value ?: emptyList()
             // Update existing entries
@@ -255,7 +353,47 @@ class SharedRecipesViewModel : ViewModel() {
 
             _recipes.postValue(updated)
         } catch (e: Exception) {
-            Log.e(TAG, "applyFavoritesForCurrentUser failed", e)
+            Log.e(TAG, "applyFavoritesForUser failed", e)
+        }
+    }
+
+    // Register a realtime listener on the user's favorites subcollection to keep local DB in sync
+    private fun registerFavoritesListener(uid: String) {
+        try {
+            favListener = fStore.collection("users").document(uid).collection("favorites")
+                .addSnapshotListener { snapshots, error ->
+                    if (error != null) {
+                        Log.e(TAG, "favorites listener error for user=$uid", error)
+                        return@addSnapshotListener
+                    }
+                    if (snapshots == null) return@addSnapshotListener
+
+                    Thread {
+                        try {
+                            for (dc in snapshots.documentChanges) {
+                                val rid = dc.document.id
+                                when (dc.type) {
+                                    DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                                        try {
+                                            AppLocalDB.db.favoriteDao.upsert(com.sandg.tastebuds.models.Favorite(recipeId = rid, userId = uid, isFavorite = true))
+                                        } catch (e: Exception) { Log.e(TAG, "listener upsert failed", e) }
+                                    }
+                                    DocumentChange.Type.REMOVED -> {
+                                        try {
+                                            AppLocalDB.db.favoriteDao.deleteFavorite(rid, uid)
+                                        } catch (e: Exception) { Log.e(TAG, "listener delete failed", e) }
+                                    }
+                                }
+                            }
+                            // After applying changes, update in-memory list
+                            applyFavoritesForUser(uid)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "favorites listener processing failed", e)
+                        }
+                    }.start()
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "registerFavoritesListener failed", e)
         }
     }
 }
