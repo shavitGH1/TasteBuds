@@ -12,14 +12,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.sandg.tastebuds.models.Recipe
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class MyRecipesFragment : Fragment() {
     private val sharedVm: SharedRecipesViewModel by activityViewModels()
     private lateinit var adapter: RecipesAdapter
+    private lateinit var swipe: SwipeRefreshLayout
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_my_recipes, container, false)
         val recycler = root.findViewById<RecyclerView>(R.id.recyclerView)
+        swipe = root.findViewById(R.id.swipeRefresh)
 
         recycler.layoutManager = LinearLayoutManager(requireContext())
         adapter = RecipesAdapter()
@@ -43,6 +46,23 @@ class MyRecipesFragment : Fragment() {
             adapter.submitList(filtered)
         }
 
+        swipe.setOnRefreshListener {
+            swipe.isRefreshing = true
+            sharedVm.reloadAll {
+                swipe.isRefreshing = false
+            }
+        }
+
         return root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        swipe.post {
+            swipe.isRefreshing = true
+            sharedVm.reloadAll {
+                swipe.isRefreshing = false
+            }
+        }
     }
 }
