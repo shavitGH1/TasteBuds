@@ -75,7 +75,6 @@ data class Recipe(
         get() = hashMapOf(
             "id" to id,
             "name" to name,
-            "isFavorite" to isFavorite,
             "imageUrlString" to imageUrlString,
             "publisher" to publisher,
             "publisher_id" to publisherId,
@@ -84,7 +83,8 @@ data class Recipe(
             "time" to time,
             "difficulty" to difficulty,
             "dietRestrictions" to dietRestrictions,
-            "description" to description
+            "description" to description,
+            "isFavorite" to isFavorite
         )
 }
 

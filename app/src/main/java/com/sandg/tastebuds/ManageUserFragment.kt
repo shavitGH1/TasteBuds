@@ -63,7 +63,7 @@ class ManageUserFragment : Fragment() {
             val f = File(localPath)
             if (f.exists()) {
                 try {
-                    com.squareup.picasso.Picasso.get().load(f).placeholder(R.drawable.avatar).into(ivAvatar)
+                    com.squareup.picasso.Picasso.get().load(f).placeholder(R.drawable.ic_baseline_person_24).into(ivAvatar)
                 } catch (_: Exception) {
                     ivAvatar.setImageURI(Uri.fromFile(f))
                 }
@@ -72,7 +72,7 @@ class ManageUserFragment : Fragment() {
             // fallback to Firebase user photoURL (read-only)
             user?.photoUrl?.let { uri ->
                 try {
-                    com.squareup.picasso.Picasso.get().load(uri).placeholder(R.drawable.avatar).into(ivAvatar)
+                    com.squareup.picasso.Picasso.get().load(uri).placeholder(R.drawable.ic_baseline_person_24).into(ivAvatar)
                 } catch (_: Exception) {
                     ivAvatar.setImageURI(uri)
                 }
@@ -160,7 +160,7 @@ class ManageUserFragment : Fragment() {
                 val iv = view?.findViewById<ImageView>(R.id.ivAvatar)
                 if (iv != null) {
                     try {
-                        com.squareup.picasso.Picasso.get().load(saved).placeholder(R.drawable.avatar).into(iv)
+                        com.squareup.picasso.Picasso.get().load(saved).placeholder(R.drawable.ic_baseline_person_24).into(iv)
                     } catch (_: Exception) {
                         iv.setImageURI(Uri.fromFile(saved))
                     }
@@ -188,7 +188,7 @@ class ManageUserFragment : Fragment() {
                         val iv = view?.findViewById<ImageView>(R.id.ivAvatar)
                         if (iv != null) {
                             try {
-                                com.squareup.picasso.Picasso.get().load(file).placeholder(R.drawable.avatar).into(iv)
+                                com.squareup.picasso.Picasso.get().load(file).placeholder(R.drawable.ic_baseline_person_24).into(iv)
                             } catch (_: Exception) {
                                 iv.setImageURI(Uri.fromFile(file))
                             }

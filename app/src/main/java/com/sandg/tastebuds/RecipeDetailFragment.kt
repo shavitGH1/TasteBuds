@@ -1,7 +1,6 @@
 package com.sandg.tastebuds
 
 import android.graphics.drawable.Animatable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,8 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.sandg.tastebuds.databinding.FragmentRecipeDetailBinding
 import com.sandg.tastebuds.models.Model
@@ -19,6 +18,8 @@ import com.sandg.tastebuds.models.Recipe
 import com.squareup.picasso.Picasso
 
 class RecipeDetailFragment : Fragment() {
+
+    private val sharedVm: SharedRecipesViewModel by activityViewModels()
 
     private var binding: FragmentRecipeDetailBinding? = null
     private var recipeId: String? = null
@@ -57,6 +58,17 @@ class RecipeDetailFragment : Fragment() {
             }
         }
 
+        // Observe shared viewmodel so detail updates when favorites change elsewhere
+        sharedVm.recipes.observe(viewLifecycleOwner) { list ->
+            val idLocal = recipeId
+            if (idLocal == null) return@observe
+            val updated = list.firstOrNull { it.id == idLocal }
+            if (updated != null) {
+                recipe = updated
+                bindRecipe(updated)
+            }
+        }
+
         binding?.favoriteFab?.setOnClickListener {
             recipe?.let { r ->
                 val toggled = r.copy(isFavorite = !r.isFavorite)
@@ -64,14 +76,9 @@ class RecipeDetailFragment : Fragment() {
                 recipe = toggled
                 updateFavoriteIcon(toggled.isFavorite)
                 animateFavoriteToggle(toggled.isFavorite)
-                Model.shared.addRecipe(toggled) {
-                    Model.shared.getRecipeById(toggled.id) { refreshed ->
-                        activity?.runOnUiThread {
-                            recipe = refreshed
-                            bindRecipe(refreshed)
-                        }
-                    }
-                }
+
+                // Use shared ViewModel to toggle per-user favorite (avoids writing global favorite to server)
+                sharedVm.toggleFavorite(toggled)
             }
         }
 
@@ -99,7 +106,7 @@ class RecipeDetailFragment : Fragment() {
         binding?.imageView?.let { imageView ->
             Picasso.get()
                 .load(r.imageUrlString)
-                .placeholder(R.drawable.avatar)
+                .placeholder(R.drawable.ic_baseline_person_24)
                 .into(imageView)
         }
 

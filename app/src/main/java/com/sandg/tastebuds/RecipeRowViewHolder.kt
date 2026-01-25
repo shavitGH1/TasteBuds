@@ -48,7 +48,7 @@ class RecipeRowViewHolder(
         Picasso
             .get()
             .load(recipe.imageUrlString)
-            .placeholder(R.drawable.avatar)
+            .placeholder(R.drawable.ic_baseline_person_24)
             .into(binding.imageView)
     }
 
