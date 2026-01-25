@@ -36,8 +36,18 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
             tvPublisher.text = recipe.publisher ?: ""
             Picasso.get().load(recipe.imageUrlString).placeholder(R.drawable.avatar).into(ivImage)
 
+            // Update favorite icon based on recipe state
+            fav.setImageResource(if (recipe.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
+
             view.setOnClickListener { listener?.onRecipeItemClick(recipe) }
-            fav.setOnClickListener { listener?.onToggleFavorite(recipe) }
+
+            // Toggle locally, send toggled recipe to listener for shared ViewModel handling
+            fav.setOnClickListener {
+                val toggled = recipe.copy(isFavorite = !recipe.isFavorite)
+                // Optimistic UI update
+                fav.setImageResource(if (toggled.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
+                listener?.onToggleFavorite(toggled)
+            }
         }
     }
 
