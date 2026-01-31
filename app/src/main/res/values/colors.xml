@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- App accent (purple) - updated to user-provided color -->
+    <color name="accent_purple">#ff6750a4</color>
+
+    <!-- Public tints for bottom navigation (use the provided purple) -->
+    <color name="bottom_nav_icon_tint">#ff6750a4</color>
+    <color name="bottom_nav_label_tint">#ff6750a4</color>
 </resources>

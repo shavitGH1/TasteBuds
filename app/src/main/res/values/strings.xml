@@ -2,4 +2,57 @@
     <string name="app_name">TasteBuds</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Recipes list -->
+    <string name="title_recipes">Recipes</string>
+    <string name="fab_add_recipe">Add Recipe</string>
+
+    <!-- Recipe row -->
+    <string name="recipe_image_desc">Recipe image</string>
+    <string name="recipe_name">Recipe Name</string>
+    <string name="by_publisher">By publisher</string>
+    <string name="meta_default">%1$s • %2$s</string>
+    <string name="favorite_star">★</string>
+
+    <!-- Add recipe screen -->
+    <string name="label_recipe_name">Recipe Name</string>
+    <string name="hint_recipe_name">Enter recipe name</string>
+    <string name="label_description">Description</string>
+    <string name="hint_description">Write a short description or leave empty for AI generation</string>
+    <string name="label_estimated_time">Estimated Time</string>
+    <string name="default_time">30 min</string>
+    <string name="label_difficulty">Difficulty</string>
+    <string name="default_difficulty">Medium</string>
+    <string name="label_diet_restrictions">Diet Restrictions</string>
+    <string name="default_diet">None</string>
+
+    <string name="label_ingredients">Ingredients</string>
+    <string name="add_ingredient">+ Add Ingredient</string>
+
+    <string name="label_preparation_steps">Preparation Steps</string>
+    <string name="add_step">+ Add Step</string>
+    <string name="step_hint">Step description</string>
+
+    <string name="label_add_picture">Add a Picture</string>
+    <string name="select_image">Select Image</string>
+
+    <string name="save">Save</string>
+
+    <!-- Ingredient dialog -->
+    <string name="ingredient_dialog_title">Add Ingredient</string>
+    <string name="ingredient_name_hint">Name</string>
+    <string name="ingredient_amount_hint">Amount</string>
+    <string name="ingredient_unit_hint">Unit (g, tbsp…)</string>
+    <string name="button_add">Add</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="remove_text">Remove</string>
+    <string name="remove_x">✕</string>
+
+    <!-- Accessibility -->
+    <string name="favorite">Favorite</string>
+
+    <!-- Registration -->
+    <string name="button_register">Register</string>
+    <string name="button_sign_in_username">Sign in with username</string>
+
 </resources>

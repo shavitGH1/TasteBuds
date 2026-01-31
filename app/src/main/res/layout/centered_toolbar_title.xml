@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/toolbar_title"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:text="Recipes List"
-    android:textSize="20sp"
-    android:textStyle="bold"
-    android:textColor="?attr/colorOnPrimary" />
-
+    android:gravity="center"
+    android:shadowColor="#80000000"
+    android:shadowDx="2"
+    android:shadowDy="2"
+    android:shadowRadius="3"
+    android:text="My Recipes"
+    android:textColor="#D84315"
+    android:textSize="48sp"
+    android:textStyle="bold" />

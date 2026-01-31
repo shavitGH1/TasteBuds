@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/recipesListFragment">
+    app:startDestination="@id/homeHostFragment">
+
+    <fragment
+        android:id="@+id/homeHostFragment"
+        android:name="com.sandg.tastebuds.HomeHostFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home_host" />
 
     <fragment
         android:id="@+id/recipesListFragment"
@@ -13,6 +19,9 @@
         <action
             android:id="@+id/action_recipesListFragment_to_blueFragment"
             app:destination="@id/blueFragment" />
+        <action
+            android:id="@+id/action_recipesListFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/addRecipeFragment"
@@ -28,6 +37,16 @@
             android:name="TITLE_KEY"
             app:argType="string"
             app:nullable="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/recipeDetailFragment"
+        android:name="com.sandg.tastebuds.RecipeDetailFragment"
+        android:label="Recipe Detail"
+        tools:layout="@layout/fragment_recipe_detail">
+        <argument
+            android:name="recipeId"
+            app:argType="string"
+            android:defaultValue="" />
     </fragment>
     <action android:id="@+id/action_global_addRecipeFragment" app:destination="@id/addRecipeFragment" />
 </navigation>
