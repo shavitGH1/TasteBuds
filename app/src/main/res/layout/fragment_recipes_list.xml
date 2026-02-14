@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E5BE97"
+    android:background="@drawable/food_background_honey"
     tools:context=".RecipesListFragment">
 
     <!-- leave space at bottom for FAB -->
@@ -12,6 +12,7 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/transparent"
         android:clipToPadding="false"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"

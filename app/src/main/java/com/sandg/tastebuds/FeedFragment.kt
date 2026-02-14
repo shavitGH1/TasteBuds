@@ -32,7 +32,7 @@ class FeedFragment : Fragment() {
         adapter.listener = object : OnItemClickListener {
             override fun onRecipeItemClick(recipe: Recipe) {
                 val args = bundleOf("recipeId" to recipe.id)
-                findNavController().navigate(R.id.action_recipesListFragment_to_recipeDetailFragment, args)
+                findNavController().navigate(R.id.action_global_recipeDetailFragment, args)
             }
 
             override fun onToggleFavorite(recipe: Recipe) {

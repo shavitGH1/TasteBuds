@@ -119,7 +119,8 @@ class RecipeDetailFragment : Fragment() {
 
         binding?.ingredientsContainer?.removeAllViews()
         r.ingredients.forEach { ing ->
-            val tv = TextView(requireContext())
+            val ctx = context ?: return
+            val tv = TextView(ctx)
             val amt = ing.amount?.let { if (it == it.toInt().toDouble()) it.toInt().toString() else it.toString() } ?: ""
             val unit = ing.unit ?: ""
             val text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} — $amt $unit".trim() else ing.name
@@ -130,7 +131,8 @@ class RecipeDetailFragment : Fragment() {
 
         binding?.stepsContainer?.removeAllViews()
         r.steps.forEachIndexed { idx, step ->
-            val tv = TextView(requireContext())
+            val ctx = context ?: return
+            val tv = TextView(ctx)
             tv.text = "${idx + 1}. $step"
             tv.setPadding(0, 6, 0, 6)
             binding?.stepsContainer?.addView(tv)
@@ -150,10 +152,11 @@ class RecipeDetailFragment : Fragment() {
 
     private fun animateFavoriteToggle(isFavorite: Boolean) {
         val fab = binding?.favoriteFab ?: return
+        val ctx = context ?: return
         fab.imageTintList = null
 
         if (isFavorite) {
-            val animDrawable = androidx.core.content.res.ResourcesCompat.getDrawable(resources, R.drawable.avd_heart_fill, requireContext().theme)
+            val animDrawable = androidx.core.content.res.ResourcesCompat.getDrawable(resources, R.drawable.avd_heart_fill, ctx.theme)
             if (animDrawable != null) {
                 fab.setImageDrawable(animDrawable)
                 if (animDrawable is Animatable) (animDrawable as Animatable).start()
