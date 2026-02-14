@@ -26,13 +26,12 @@
 
         <TextView
             android:id="@+id/name_text_view"
+            style="@style/TextAppearance.TasteBuds.RecipeName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:text="@string/recipe_name"
-            android:textSize="16sp"
-            android:textStyle="bold"
             android:textDirection="ltr"
             app:layout_constraintEnd_toStartOf="@+id/options_button"
             app:layout_constraintStart_toEndOf="@+id/image_view"
@@ -51,13 +50,13 @@
 
         <TextView
             android:id="@+id/meta_text_view"
+            style="@style/TextAppearance.TasteBuds.Meta"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:text="@string/default_time"
-            android:textSize="13sp"
             android:textDirection="ltr"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/options_button"

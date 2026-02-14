@@ -22,14 +22,15 @@
 
         <TextView
             android:id="@+id/tvName"
+            style="@style/TextAppearance.TasteBuds.RecipeName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:textStyle="bold"
             android:textSize="14sp" />
 
         <TextView
             android:id="@+id/tvPublisher"
+            style="@style/TextAppearance.TasteBuds.Meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"

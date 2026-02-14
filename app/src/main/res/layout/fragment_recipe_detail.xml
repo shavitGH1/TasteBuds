@@ -77,11 +77,10 @@
 
                     <TextView
                         android:id="@+id/nameTextView"
+                        style="@style/TextAppearance.TasteBuds.Title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="22sp"
-                        android:textStyle="bold"
-                        android:textColor="#000000"
                         android:gravity="start"
                         android:textDirection="ltr" />
 
@@ -103,23 +102,21 @@
                     android:padding="16dp">
 
                     <TextView
+                        style="@style/TextAppearance.TasteBuds.SectionHeader"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Description"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"
                         android:textDirection="ltr"
                         android:layout_marginBottom="8dp" />
 
                     <TextView
                         android:id="@+id/descriptionTextView"
+                        style="@style/TextAppearance.TasteBuds.Body"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="100dp"
                         android:textSize="16sp"
-                        android:textDirection="ltr"
-                        android:textColor="#000000" />
+                        android:textDirection="ltr" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

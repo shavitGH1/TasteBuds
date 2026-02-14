@@ -65,6 +65,6 @@
 
     <!-- Registration -->
     <string name="button_register">Register</string>
-    <string name="button_sign_in_username">Sign in with username</string>
+    <string name="button_sign_in_username">Log in</string>
 
 </resources>
