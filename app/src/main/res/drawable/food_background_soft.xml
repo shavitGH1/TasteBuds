@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft tiramisu-cream background for content pages -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Warm cream base gradient -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="135"
+                android:startColor="#FFF8F3"
+                android:centerColor="#FFEEE3"
+                android:endColor="#FFE3D0"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Soft mocha overlay -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="45"
+                android:startColor="#20D4A08A"
+                android:centerColor="#15C8A088"
+                android:endColor="#20BC9080"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>
+
