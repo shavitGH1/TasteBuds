@@ -37,7 +37,6 @@ class RecipeRowViewHolder(
     fun bind(recipe: Recipe) {
         this.recipe = recipe
         binding.nameTextView.text = recipe.name
-        binding.authorTextView.text = recipe.publisher ?: ""
 
         val timeText = recipe.time?.let { "$it min" } ?: ""
         val difficultyText = recipe.difficulty ?: ""

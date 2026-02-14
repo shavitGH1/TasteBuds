@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
 import com.sandg.tastebuds.databinding.FragmentRecipeDetailBinding
 import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
@@ -47,8 +48,6 @@ class RecipeDetailFragment : Fragment() {
             return binding?.root
         }
 
-        binding?.metaTextView?.text = "Loading..."
-
         lastFetchStartTime = System.currentTimeMillis()
         Model.shared.getRecipeById(id) { r ->
             activity?.runOnUiThread {
@@ -83,7 +82,21 @@ class RecipeDetailFragment : Fragment() {
         }
 
         binding?.editButton?.setOnClickListener {
-            findNavController().navigate(R.id.action_global_addRecipeFragment)
+            recipe?.let { r ->
+                val bundle = Bundle().apply {
+                    putString("recipeId", r.id)
+                    putString("recipeName", r.name)
+                    putString("description", r.description)
+                    putInt("time", r.time ?: 30)
+                    putString("difficulty", r.difficulty)
+                    putString("imageUrl", r.imageUrlString)
+                    putStringArrayList("steps", ArrayList(r.steps))
+                    // Ingredients need to be serialized
+                    val ingredientsJson = Gson().toJson(r.ingredients)
+                    putString("ingredientsJson", ingredientsJson)
+                }
+                findNavController().navigate(R.id.action_global_addRecipeFragment, bundle)
+            }
         }
 
         return binding?.root
@@ -91,15 +104,14 @@ class RecipeDetailFragment : Fragment() {
 
     private fun bindRecipe(r: Recipe) {
         binding?.nameTextView?.text = r.name
-        binding?.authorTextView?.text = r.publisher ?: ""
 
-        val timeText = r.time?.let { "$it min" } ?: ""
-        val difficultyText = r.difficulty ?: ""
-        val dietText = if (r.dietRestrictions.isNotEmpty()) r.dietRestrictions.joinToString(", ") else ""
-        val metaParts = listOf(timeText, difficultyText, dietText).filter { it.isNotEmpty() }
-        binding?.metaTextView?.text = metaParts.joinToString(" • ")
+        val timeText = r.time?.let { "$it minutes" } ?: "Not specified"
+        binding?.timeTextView?.text = timeText
 
-        binding?.descriptionTextView?.text = r.description ?: ""
+        val difficultyText = r.difficulty ?: "Not specified"
+        binding?.difficultyTextView?.text = difficultyText
+
+        binding?.descriptionTextView?.text = r.description ?: "No description available"
 
         updateFavoriteIcon(r.isFavorite)
 
@@ -111,7 +123,9 @@ class RecipeDetailFragment : Fragment() {
         }
 
         val currentEmail = FirebaseAuth.getInstance().currentUser?.email
-        if (!currentEmail.isNullOrEmpty() && !r.publisher.isNullOrEmpty() && currentEmail == r.publisher) {
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+        if ((!currentEmail.isNullOrEmpty() && !r.publisher.isNullOrEmpty() && currentEmail == r.publisher) ||
+            (!currentUid.isNullOrEmpty() && !r.publisherId.isNullOrEmpty() && currentUid == r.publisherId)) {
             binding?.editButton?.visibility = View.VISIBLE
         } else {
             binding?.editButton?.visibility = View.GONE

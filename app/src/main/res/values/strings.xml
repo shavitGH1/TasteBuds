@@ -20,6 +20,7 @@
     <string name="label_description">Description</string>
     <string name="hint_description">Write a short description or leave empty for AI generation</string>
     <string name="label_estimated_time">Estimated Time</string>
+    <string name="hint_preparation_time">Enter time in minutes (e.g., 30)</string>
     <string name="default_time">30 min</string>
     <string name="label_difficulty">Difficulty</string>
     <string name="default_difficulty">Medium</string>
@@ -33,10 +34,21 @@
     <string name="add_step">+ Add Step</string>
     <string name="step_hint">Step description</string>
 
+    <string name="label_image_url">Recipe Image URL</string>
+    <string name="hint_image_url">Paste image URL (https://…)</string>
+    <string name="preview_image">Preview Image</string>
     <string name="label_add_picture">Add a Picture</string>
     <string name="select_image">Select Image</string>
 
     <string name="save">Save</string>
+
+    <!-- Validation messages -->
+    <string name="error_recipe_name_required">Recipe name is required</string>
+    <string name="error_invalid_time">Please enter a valid time in minutes (numbers only)</string>
+    <string name="error_invalid_url">Please enter a valid image URL starting with http:// or https://</string>
+    <string name="error_no_ingredients">Please add at least one ingredient</string>
+    <string name="error_no_steps">Please add at least one preparation step</string>
+    <string name="success_recipe_saved">Recipe saved successfully!</string>
 
     <!-- Ingredient dialog -->
     <string name="ingredient_dialog_title">Add Ingredient</string>

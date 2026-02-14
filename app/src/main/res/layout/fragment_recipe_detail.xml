@@ -22,9 +22,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layoutDirection="ltr"
+            android:textDirection="ltr"
             android:padding="16dp">
 
-            <!-- Image Card (full-width image similar to Add Recipe) -->
+            <!-- Image Card with Edit Button -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -45,6 +47,16 @@
                         android:contentDescription="Recipe image"
                         app:srcCompat="@drawable/avatar" />
 
+                    <Button
+                        android:id="@+id/editButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="8dp"
+                        android:text="Edit"
+                        android:visibility="gone"
+                        style="@style/Widget.Material3.Button.ElevatedButton" />
+
                 </FrameLayout>
             </androidx.cardview.widget.CardView>
 
@@ -56,46 +68,23 @@
                 app:cardCornerRadius="8dp"
                 app:cardElevation="2dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <TextView
                         android:id="@+id/nameTextView"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="22sp"
                         android:textStyle="bold"
                         android:textColor="#000000"
-                        android:gravity="center"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toStartOf="@+id/editButton"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent" />
+                        android:gravity="start"
+                        android:textDirection="ltr" />
 
-                    <Button
-                        android:id="@+id/editButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Edit"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent" />
-
-                    <TextView
-                        android:id="@+id/authorTextView"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:textColor="#666666"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/nameTextView"
-                        android:layout_marginTop="6dp" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Description Card -->
@@ -119,6 +108,7 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
+                        android:textDirection="ltr"
                         android:layout_marginBottom="8dp" />
 
                     <TextView
@@ -127,12 +117,13 @@
                         android:layout_height="wrap_content"
                         android:minHeight="100dp"
                         android:textSize="16sp"
+                        android:textDirection="ltr"
                         android:textColor="#000000" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Meta Card (time/difficulty/diet) -->
+            <!-- Preparation Time Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -149,17 +140,54 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Details"
+                        android:text="Preparation Time"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
+                        android:textDirection="ltr"
                         android:layout_marginBottom="8dp" />
 
                     <TextView
-                        android:id="@+id/metaTextView"
+                        android:id="@+id/timeTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
+                        android:textDirection="ltr"
+                        android:textColor="#000000" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Difficulty Level Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Difficulty Level"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:textDirection="ltr"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/difficultyTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textDirection="ltr"
                         android:textColor="#000000" />
 
                 </LinearLayout>
