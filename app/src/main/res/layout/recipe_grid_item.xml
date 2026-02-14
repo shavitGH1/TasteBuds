@@ -36,13 +36,32 @@
             android:paddingBottom="8dp"
             android:textSize="12sp" />
 
-        <ImageView
-            android:id="@+id/favoriteImage"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_margin="8dp"
-            android:layout_gravity="end"
-            android:src="@drawable/ic_favorite_border" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:id="@+id/optionsButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="8dp"
+                android:padding="2dp"
+                android:contentDescription="Recipe options"
+                android:src="@android:drawable/ic_menu_more"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageView
+                android:id="@+id/favoriteImage"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_favorite_border"
+                android:contentDescription="@string/favorite" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

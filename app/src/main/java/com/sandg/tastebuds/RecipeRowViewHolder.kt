@@ -32,6 +32,12 @@ class RecipeRowViewHolder(
                 listener?.onToggleFavorite(toggled)
             }
         }
+
+        binding.optionsButton.setOnClickListener { view ->
+            recipe?.let { r ->
+                listener?.onRecipeOptions(r, view)
+            }
+        }
     }
 
     fun bind(recipe: Recipe) {

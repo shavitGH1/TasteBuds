@@ -34,8 +34,19 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:textDirection="ltr"
-            app:layout_constraintEnd_toStartOf="@+id/favorite_image"
+            app:layout_constraintEnd_toStartOf="@+id/options_button"
             app:layout_constraintStart_toEndOf="@+id/image_view"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/options_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:contentDescription="Recipe options"
+            android:src="@android:drawable/ic_menu_more"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:layout_constraintEnd_toStartOf="@+id/favorite_image"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
@@ -49,7 +60,7 @@
             android:textSize="13sp"
             android:textDirection="ltr"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/options_button"
             app:layout_constraintStart_toEndOf="@+id/image_view"
             app:layout_constraintTop_toBottomOf="@+id/name_text_view" />
 

@@ -36,6 +36,7 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
         private val tvName = view.findViewById<TextView>(R.id.tvName)
         private val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
         private val fav = view.findViewById<ImageView>(R.id.favoriteImage)
+        private val optionsBtn = view.findViewById<ImageView>(R.id.optionsButton)
 
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
@@ -58,6 +59,11 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
                 // Optimistic UI update
                 fav.setImageResource(if (toggled.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
                 listener?.onToggleFavorite(toggled)
+            }
+
+            // Options button click
+            optionsBtn.setOnClickListener { v ->
+                listener?.onRecipeOptions(recipe, v)
             }
         }
     }
