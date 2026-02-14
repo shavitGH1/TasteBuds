@@ -40,7 +40,12 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
             tvPublisher.text = recipe.publisher ?: ""
-            Picasso.get().load(recipe.imageUrlString).placeholder(R.drawable.ic_baseline_person_24).into(ivImage)
+
+            if (!recipe.imageUrlString.isNullOrEmpty()) {
+                Picasso.get().load(recipe.imageUrlString).into(ivImage)
+            } else {
+                ivImage.setImageDrawable(null)
+            }
 
             // Update favorite icon based on recipe state
             fav.setImageResource(if (recipe.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)

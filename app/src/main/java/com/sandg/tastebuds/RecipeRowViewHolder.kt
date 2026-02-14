@@ -44,11 +44,14 @@ class RecipeRowViewHolder(
 
         updateFavoriteIcon(recipe.isFavorite)
 
-        Picasso
-            .get()
-            .load(recipe.imageUrlString)
-            .placeholder(R.drawable.ic_baseline_person_24)
-            .into(binding.imageView)
+        if (!recipe.imageUrlString.isNullOrEmpty()) {
+            Picasso
+                .get()
+                .load(recipe.imageUrlString)
+                .into(binding.imageView)
+        } else {
+            binding.imageView.setImageDrawable(null)
+        }
     }
 
     private fun updateFavoriteIcon(isFavorite: Boolean) {

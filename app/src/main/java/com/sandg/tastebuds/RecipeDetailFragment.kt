@@ -115,11 +115,22 @@ class RecipeDetailFragment : Fragment() {
 
         updateFavoriteIcon(r.isFavorite)
 
-        binding?.imageView?.let { imageView ->
-            Picasso.get()
-                .load(r.imageUrlString)
-                .placeholder(R.drawable.ic_baseline_person_24)
-                .into(imageView)
+        // Load image only if URL is provided
+        if (!r.imageUrlString.isNullOrEmpty()) {
+            binding?.imageView?.let { imageView ->
+                Picasso.get()
+                    .load(r.imageUrlString)
+                    .into(imageView, object : com.squareup.picasso.Callback {
+                        override fun onSuccess() {
+                            binding?.imageCard?.visibility = View.VISIBLE
+                        }
+                        override fun onError(e: Exception?) {
+                            binding?.imageCard?.visibility = View.GONE
+                        }
+                    })
+            }
+        } else {
+            binding?.imageCard?.visibility = View.GONE
         }
 
         val currentEmail = FirebaseAuth.getInstance().currentUser?.email

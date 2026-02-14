@@ -198,9 +198,15 @@ class AddRecipeFragment : Fragment() {
         binding?.avatarImageView?.let { imageView ->
             Picasso.get()
                 .load(url)
-                .placeholder(R.drawable.avatar)
-                .error(R.drawable.avatar)
-                .into(imageView)
+                .into(imageView, object : com.squareup.picasso.Callback {
+                    override fun onSuccess() {
+                        imageView.visibility = View.VISIBLE
+                    }
+                    override fun onError(e: Exception?) {
+                        imageView.visibility = View.GONE
+                        showToast("Failed to load image. Please check the URL.")
+                    }
+                })
         }
     }
 

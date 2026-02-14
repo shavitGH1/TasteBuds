@@ -250,8 +250,8 @@
                         android:layout_marginTop="12dp"
                         android:scaleType="centerCrop"
                         android:background="#E0E0E0"
-                        android:contentDescription="@string/recipe_image_desc"
-                        app:srcCompat="@drawable/avatar" />
+                        android:visibility="gone"
+                        android:contentDescription="@string/recipe_image_desc" />
 
                     <Button
                         android:id="@+id/preview_image_button"
