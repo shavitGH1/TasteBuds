@@ -20,24 +20,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
-import java.util.UUID
 
 class ManageUserFragment : Fragment() {
 
     private var cameraImageUri: Uri? = null
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { handleAvatarSelected(it) }
+        uri?.let { handlePhotoSelected(it) }
     }
 
     private val takePhotoLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean ->
         if (success && cameraImageUri != null) {
-            handleAvatarSelected(cameraImageUri!!)
+            handlePhotoSelected(cameraImageUri!!)
         }
     }
 
@@ -48,38 +44,41 @@ class ManageUserFragment : Fragment() {
         val ivAvatar = root.findViewById<ImageView>(R.id.ivAvatar)
         val tvName = root.findViewById<TextView>(R.id.tvName)
         val tvEmail = root.findViewById<TextView>(R.id.tvEmail)
-        val btnEditAvatar = root.findViewById<Button>(R.id.btnEditAvatar)
+        val tvRecipeCount = root.findViewById<TextView>(R.id.tvRecipeCount)
+        val tvFavoriteCount = root.findViewById<TextView>(R.id.tvFavoriteCount)
+        val btnEditPhoto = root.findViewById<Button>(R.id.btnEditPhoto)
         val btnChangePassword = root.findViewById<Button>(R.id.btnChangePassword)
         val btnSignOut = root.findViewById<Button>(R.id.btnSignOut)
 
-        tvName.text = user?.displayName ?: ""
+        // Set user info
+        val displayName = user?.displayName ?: user?.email?.substringBefore("@") ?: "User"
+        tvName.text = displayName
         tvEmail.text = user?.email ?: ""
 
-        // Load avatar from local prefs (internal storage) if present; otherwise fall back to Firebase profile photo
-        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val avatarKey = "avatar_path_${user?.uid ?: "anonymous"}"
-        val localPath = prefs.getString(avatarKey, null)
-        if (localPath != null) {
-            val f = File(localPath)
-            if (f.exists()) {
-                try {
-                    com.squareup.picasso.Picasso.get().load(f).placeholder(R.drawable.ic_baseline_person_24).into(ivAvatar)
-                } catch (_: Exception) {
-                    ivAvatar.setImageURI(Uri.fromFile(f))
-                }
+        // Load saved photo or show default icon
+        loadProfilePhoto(ivAvatar, user?.uid)
+
+        // Load stats using SharedRecipesViewModel
+        try {
+            val sharedVm = androidx.lifecycle.ViewModelProvider(requireActivity())[SharedRecipesViewModel::class.java]
+            sharedVm.recipes.observe(viewLifecycleOwner) { recipes ->
+                val currentUid = user?.uid
+
+                // Count recipes created by user
+                val myRecipesCount = recipes.count { it.publisherId == currentUid }
+                tvRecipeCount.text = myRecipesCount.toString()
+
+                // Count favorited recipes
+                val favoritesCount = recipes.count { it.isFavorite }
+                tvFavoriteCount.text = favoritesCount.toString()
             }
-        } else {
-            // fallback to Firebase user photoURL (read-only)
-            user?.photoUrl?.let { uri ->
-                try {
-                    com.squareup.picasso.Picasso.get().load(uri).placeholder(R.drawable.ic_baseline_person_24).into(ivAvatar)
-                } catch (_: Exception) {
-                    ivAvatar.setImageURI(uri)
-                }
-            }
+        } catch (e: Exception) {
+            // If ViewModel not available, show 0
+            tvRecipeCount.text = "0"
+            tvFavoriteCount.text = "0"
         }
 
-        btnEditAvatar.setOnClickListener { showAvatarOptions() }
+        btnEditPhoto.setOnClickListener { showPhotoOptions() }
 
         btnChangePassword.setOnClickListener { showChangePasswordDialog() }
 
@@ -88,6 +87,115 @@ class ManageUserFragment : Fragment() {
         }
 
         return root
+    }
+
+    private fun loadProfilePhoto(ivAvatar: ImageView, uid: String?) {
+        // Try to load saved photo from internal storage
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val photoPath = prefs.getString("photo_path_${uid ?: "anonymous"}", null)
+
+        if (photoPath != null) {
+            val file = File(photoPath)
+            if (file.exists()) {
+                try {
+                    com.squareup.picasso.Picasso.get()
+                        .load(file)
+                        .fit()
+                        .centerCrop()
+                        .into(ivAvatar)
+                    // Remove tint when showing photo
+                    ivAvatar.imageTintList = null
+                } catch (e: Exception) {
+                    // Fallback to default icon
+                    ivAvatar.setImageResource(R.drawable.ic_baseline_person_24)
+                }
+            } else {
+                // File doesn't exist, show default
+                ivAvatar.setImageResource(R.drawable.ic_baseline_person_24)
+            }
+        } else {
+            // No saved photo, show default icon
+            ivAvatar.setImageResource(R.drawable.ic_baseline_person_24)
+        }
+    }
+
+    private fun showPhotoOptions() {
+        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Profile Photo")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> launchCamera()
+                    1 -> pickFromGallery()
+                    2 -> removePhoto()
+                }
+            }
+            .show()
+    }
+
+    private fun launchCamera() {
+        val resolver = requireContext().contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        }
+        cameraImageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        takePhotoLauncher.launch(cameraImageUri)
+    }
+
+    private fun pickFromGallery() {
+        pickImageLauncher.launch("image/*")
+    }
+
+    private fun removePhoto() {
+        val user = FirebaseAuth.getInstance().currentUser
+        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().remove("photo_path_${user?.uid ?: "anonymous"}").apply()
+
+        // Reset to default icon
+        val ivAvatar = view?.findViewById<ImageView>(R.id.ivAvatar)
+        ivAvatar?.setImageResource(R.drawable.ic_baseline_person_24)
+
+        Toast.makeText(requireContext(), "Photo removed", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handlePhotoSelected(uri: Uri) {
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            Toast.makeText(requireContext(), "Not signed in", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
+            val bitmap = ImageDecoder.decodeBitmap(source)
+
+            // Save to internal storage
+            val filename = "profile_photo_${user.uid}.jpg"
+            val file = File(requireContext().filesDir, filename)
+
+            FileOutputStream(file).use { out ->
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+            }
+
+            // Save path in preferences
+            val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putString("photo_path_${user.uid}", file.absolutePath).apply()
+
+            // Update UI
+            val ivAvatar = view?.findViewById<ImageView>(R.id.ivAvatar)
+            ivAvatar?.let {
+                com.squareup.picasso.Picasso.get()
+                    .load(file)
+                    .fit()
+                    .centerCrop()
+                    .into(it)
+                // Remove tint when showing photo
+                it.imageTintList = null
+            }
+
+            Toast.makeText(requireContext(), "Photo saved!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to save photo", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun performSignOut() {
@@ -101,158 +209,11 @@ class ManageUserFragment : Fragment() {
         } catch (_: Exception) {
         }
 
-        // Optionally clear user_prefs (avatar path) if you want to remove local avatar on sign out
-        // val userPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        // userPrefs.edit().clear().apply()
-
         // Navigate back to RegistrationActivity and clear back stack so user cannot go back
         val intent = Intent(requireContext(), RegistrationActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
         activity?.finish()
-    }
-
-    private fun showAvatarOptions() {
-        val items = arrayOf("Take Photo", "Choose from Files")
-        AlertDialog.Builder(requireContext())
-            .setTitle("Edit Avatar")
-            .setItems(items) { _, which ->
-                when (which) {
-                    0 -> launchCamera()
-                    1 -> pickImageFromFiles()
-                }
-            }
-            .show()
-    }
-
-    private fun pickImageFromFiles() {
-        pickImageLauncher.launch("image/*")
-    }
-
-    private fun launchCamera() {
-        val resolver = requireContext().contentResolver
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-        }
-        cameraImageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        takePhotoLauncher.launch(cameraImageUri)
-    }
-
-    // New: handle selected avatar and save locally (internal storage) instead of uploading to Firebase
-    private fun handleAvatarSelected(uri: Uri) {
-        showStyledToast("Saving avatar locally...", null)
-        val user = FirebaseAuth.getInstance().currentUser ?: run {
-            showStyledToast("Not signed in", android.R.drawable.ic_dialog_alert)
-            return
-        }
-
-        try {
-            val source = ImageDecoder.createSource(requireContext().contentResolver, uri)
-            val bitmap = ImageDecoder.decodeBitmap(source)
-            val filename = "avatar_${user.uid}.jpg"
-            val saved = saveBitmapToInternalFile(bitmap, filename)
-            if (saved != null) {
-                // persist path in SharedPreferences
-                val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                prefs.edit().putString("avatar_path_${user.uid}", saved.absolutePath).apply()
-
-                // update UI avatar ImageView
-                val iv = view?.findViewById<ImageView>(R.id.ivAvatar)
-                if (iv != null) {
-                    try {
-                        com.squareup.picasso.Picasso.get().load(saved).placeholder(R.drawable.ic_baseline_person_24).into(iv)
-                    } catch (_: Exception) {
-                        iv.setImageURI(Uri.fromFile(saved))
-                    }
-                }
-
-                showStyledToast("Avatar saved locally", android.R.drawable.ic_menu_send)
-            } else {
-                showStyledToast("Failed to save avatar", android.R.drawable.ic_dialog_alert)
-            }
-        } catch (e: Exception) {
-            // fallback: try to copy stream from uri to internal file
-            try {
-                val input = requireContext().contentResolver.openInputStream(uri)
-                input?.let {
-                    val filename = "avatar_${user.uid}_${UUID.randomUUID()}.jpg"
-                    val file = File(requireContext().filesDir, filename)
-                    var out: OutputStream? = null
-                    try {
-                        out = FileOutputStream(file)
-                        input.copyTo(out)
-                        out.flush()
-                        // persist path
-                        val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                        prefs.edit().putString("avatar_path_${user.uid}", file.absolutePath).apply()
-                        val iv = view?.findViewById<ImageView>(R.id.ivAvatar)
-                        if (iv != null) {
-                            try {
-                                com.squareup.picasso.Picasso.get().load(file).placeholder(R.drawable.ic_baseline_person_24).into(iv)
-                            } catch (_: Exception) {
-                                iv.setImageURI(Uri.fromFile(file))
-                            }
-                        }
-                        showStyledToast("Avatar saved locally", android.R.drawable.ic_menu_send)
-                    } finally {
-                        out?.close()
-                        input.close()
-                    }
-                } ?: run {
-                    showStyledToast("Failed to read selected image", android.R.drawable.ic_dialog_alert)
-                }
-            } catch (ex: IOException) {
-                showStyledToast("Failed to save avatar", android.R.drawable.ic_dialog_alert)
-            }
-        }
-    }
-
-    private fun saveBitmapToInternalFile(bitmap: android.graphics.Bitmap, filename: String): File? {
-        return try {
-            val file = File(requireContext().filesDir, filename)
-            var fos: FileOutputStream? = null
-            try {
-                fos = FileOutputStream(file)
-                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, fos)
-                fos.flush()
-            } finally {
-                fos?.close()
-            }
-            file
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    // Personalized styled toast (adapted from RegistrationActivity.showStyledToast)
-    private fun showStyledToast(message: String, iconRes: Int?) {
-        try {
-            val inflater = LayoutInflater.from(requireContext())
-            val parent = requireActivity().findViewById<ViewGroup>(android.R.id.content)
-            val layout = inflater.inflate(R.layout.custom_toast, parent, false)
-            val tv = layout.findViewById<TextView>(R.id.toast_text)
-            val iv = layout.findViewById<ImageView>(R.id.toast_icon)
-            tv.text = message
-            if (iconRes != null) {
-                iv.setImageResource(iconRes)
-                iv.visibility = View.VISIBLE
-            } else {
-                iv.visibility = View.GONE
-            }
-
-            val toast = Toast(requireContext())
-            toast.duration = if (iconRes == android.R.drawable.ic_menu_send) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
-            try {
-                val anim = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.toast_fade)
-                layout.startAnimation(anim)
-            } catch (_: Exception) {
-            }
-            toast.view = layout
-            toast.setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
-            toast.show()
-        } catch (_: Exception) {
-            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-        }
     }
 
     private fun showChangePasswordDialog() {
@@ -287,11 +248,10 @@ class ManageUserFragment : Fragment() {
             changePassword(old, nw) { success, msg ->
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
                 if (success) {
-                    showStyledToast(msg ?: "Password changed", android.R.drawable.ic_menu_send)
+                    Toast.makeText(requireContext(), msg ?: "Password changed", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
                 } else {
-                    // If the failure is due to wrong old password, show the exact message
-                    showStyledToast(msg ?: "Failed to change password", android.R.drawable.ic_dialog_alert)
+                    Toast.makeText(requireContext(), msg ?: "Failed to change password", Toast.LENGTH_LONG).show()
                 }
             }
         }
