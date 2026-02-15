@@ -33,6 +33,10 @@ class MyRecipesFragment : Fragment() {
 
         adapter.listener = object : OnItemClickListener {
             override fun onRecipeItemClick(recipe: Recipe) {
+                // Save current tab before navigating away
+                val prefs = requireContext().getSharedPreferences("home_host_prefs", android.content.Context.MODE_PRIVATE)
+                prefs.edit().putInt("last_selected_tab", R.id.nav_my_recipes).apply()
+
                 val args = bundleOf("recipeId" to recipe.id)
                 findNavController().navigate(R.id.action_global_recipeDetailFragment, args)
             }
