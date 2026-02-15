@@ -54,7 +54,8 @@ class MyRecipesFragment : Fragment() {
 
         sharedVm.recipes.observe(viewLifecycleOwner) { list ->
             val currentUid = FirebaseAuth.getInstance().currentUser?.uid
-            val filtered = list.filter { r -> (r.publisherId == currentUid) || r.isFavorite }
+            // Only show recipes created by the current user (not liked recipes)
+            val filtered = list.filter { r -> r.publisherId == currentUid }
             adapter.submitList(filtered)
         }
 
