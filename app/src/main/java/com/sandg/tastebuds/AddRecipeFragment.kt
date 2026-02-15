@@ -29,6 +29,10 @@ class AddRecipeFragment : Fragment() {
     // Edit mode variables
     private var isEditMode = false
     private var editingRecipeId: String? = null
+    private var existingRecipe: Recipe? = null
+
+    // Difficulty rating (1-5 stars)
+    private var difficultyRating: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,6 +56,9 @@ class AddRecipeFragment : Fragment() {
     private fun setupView() {
 
         binding?.loadingIndicator?.visibility = View.GONE
+
+        // Setup difficulty rating stars
+        setupDifficultyStars()
 
         binding?.addStepButton?.setOnClickListener {
             addStepEditText("")
@@ -175,7 +182,9 @@ class AddRecipeFragment : Fragment() {
             time = time,
             difficulty = difficulty,
             dietRestrictions = dietRestrictions,
-            description = descriptionValue
+            description = descriptionValue,
+            difficultyRating = if (difficultyRating > 0) difficultyRating else null,
+            userRatings = if (isEditMode && existingRecipe != null) existingRecipe!!.userRatings else mapOf()
         )
 
         Model.shared.addRecipe(recipe) {
@@ -192,6 +201,41 @@ class AddRecipeFragment : Fragment() {
         return Patterns.WEB_URL.matcher(url).matches() &&
                (url.startsWith("http://", ignoreCase = true) ||
                 url.startsWith("https://", ignoreCase = true))
+    }
+
+    private fun setupDifficultyStars() {
+        val stars = listOf(
+            binding?.difficultyStar1,
+            binding?.difficultyStar2,
+            binding?.difficultyStar3,
+            binding?.difficultyStar4,
+            binding?.difficultyStar5
+        )
+
+        stars.forEachIndexed { index, star ->
+            star?.setOnClickListener {
+                difficultyRating = index + 1
+                updateDifficultyStars()
+            }
+        }
+    }
+
+    private fun updateDifficultyStars() {
+        val stars = listOf(
+            binding?.difficultyStar1,
+            binding?.difficultyStar2,
+            binding?.difficultyStar3,
+            binding?.difficultyStar4,
+            binding?.difficultyStar5
+        )
+
+        stars.forEachIndexed { index, star ->
+            if (index < difficultyRating) {
+                star?.setImageResource(android.R.drawable.btn_star_big_on)
+            } else {
+                star?.setImageResource(android.R.drawable.btn_star_big_off)
+            }
+        }
     }
 
     private fun loadImagePreview(url: String) {
@@ -273,6 +317,15 @@ class AddRecipeFragment : Fragment() {
     }
 
     private fun loadRecipeData(args: Bundle) {
+        // Fetch existing recipe if we're editing
+        if (isEditMode && !editingRecipeId.isNullOrEmpty()) {
+            Model.shared.getRecipeById(editingRecipeId!!) { recipe ->
+                activity?.runOnUiThread {
+                    existingRecipe = recipe
+                }
+            }
+        }
+
         // Load recipe name
         args.getString("recipeName")?.let { name ->
             binding?.nameEditText?.setText(name)
@@ -286,6 +339,13 @@ class AddRecipeFragment : Fragment() {
         // Load preparation time
         val time = args.getInt("time", 30)
         binding?.preparationTimeEditText?.setText(time.toString())
+
+        // Load difficulty rating
+        val rating = args.getInt("difficultyRating", 0)
+        if (rating > 0) {
+            difficultyRating = rating
+            updateDifficultyStars()
+        }
 
         // Load image URL
         args.getString("imageUrl")?.let { url ->
