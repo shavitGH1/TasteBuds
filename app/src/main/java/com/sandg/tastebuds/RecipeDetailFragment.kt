@@ -48,13 +48,14 @@ class RecipeDetailFragment : Fragment() {
             return binding?.root
         }
 
-        lastFetchStartTime = System.currentTimeMillis()
-        Model.shared.getRecipeById(id) { r ->
-            activity?.runOnUiThread {
-                if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
-                recipe = r
-                bindRecipe(r)
-            }
+        // First, try to get the recipe from SharedViewModel (includes favorite state)
+        val existingRecipe = sharedVm.recipes.value?.firstOrNull { it.id == id }
+        if (existingRecipe != null) {
+            recipe = existingRecipe
+            bindRecipe(existingRecipe)
+        } else {
+            // If not in ViewModel yet, show loading
+            binding?.nameTextView?.text = "Loading..."
         }
 
         // Observe shared viewmodel so detail updates when favorites change elsewhere
@@ -65,6 +66,23 @@ class RecipeDetailFragment : Fragment() {
             if (updated != null) {
                 recipe = updated
                 bindRecipe(updated)
+            }
+        }
+
+        // Also fetch from Model to ensure we have the latest data (in background)
+        lastFetchStartTime = System.currentTimeMillis()
+        Model.shared.getRecipeById(id) { r ->
+            activity?.runOnUiThread {
+                if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
+                // Merge with favorite state from SharedViewModel
+                val currentRecipe = recipe
+                val mergedRecipe = if (currentRecipe != null) {
+                    r.copy(isFavorite = currentRecipe.isFavorite)
+                } else {
+                    r
+                }
+                recipe = mergedRecipe
+                bindRecipe(mergedRecipe)
             }
         }
 
