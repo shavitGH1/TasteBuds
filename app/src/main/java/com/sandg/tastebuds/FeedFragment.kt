@@ -1,9 +1,12 @@
 package com.sandg.tastebuds
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.core.os.bundleOf
@@ -26,12 +29,24 @@ class FeedFragment : Fragment() {
     private val firebaseModel = FirebaseModel()
     private lateinit var swipe: SwipeRefreshLayout
     private var showLikedOnly = false
+    private var searchQuery = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_feed, container, false)
         val recycler = root.findViewById<RecyclerView>(R.id.recyclerView)
         swipe = root.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
         val chipShowLikedOnly = root.findViewById<com.google.android.material.chip.Chip>(R.id.chipShowLikedOnly)
+        val searchEditText = root.findViewById<EditText>(R.id.searchEditText)
+
+        // Handle search input
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                searchQuery = s?.toString()?.trim() ?: ""
+                updateRecipesList()
+            }
+        })
 
         // Handle filter chip
         chipShowLikedOnly.setOnCheckedChangeListener { _, isChecked ->
@@ -88,15 +103,31 @@ class FeedFragment : Fragment() {
         val currentUid = FirebaseAuth.getInstance().currentUser?.uid
 
         // Filter out recipes created by current user
-        val otherRecipes = allRecipes.filter { recipe ->
+        var filteredList = allRecipes.filter { recipe ->
             recipe.publisherId != currentUid
         }
 
-        val filteredList = if (showLikedOnly) {
-            otherRecipes.filter { it.isFavorite }
-        } else {
-            otherRecipes
+        // Apply liked filter
+        if (showLikedOnly) {
+            filteredList = filteredList.filter { it.isFavorite }
         }
+
+        // Apply search filter across all fields
+        if (searchQuery.isNotEmpty()) {
+            val query = searchQuery.lowercase()
+            filteredList = filteredList.filter { recipe ->
+                recipe.name?.lowercase()?.contains(query) == true ||
+                recipe.description?.lowercase()?.contains(query) == true ||
+                recipe.difficulty?.lowercase()?.contains(query) == true ||
+                recipe.ingredients.any { ing ->
+                    ing.name.lowercase().contains(query) ||
+                    ing.unit?.lowercase()?.contains(query) == true
+                } ||
+                recipe.steps.any { step -> step.lowercase().contains(query) } ||
+                recipe.time?.toString()?.contains(query) == true
+            }
+        }
+
         adapter.submitList(filteredList.toList())
     }
 

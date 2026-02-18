@@ -12,17 +12,57 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Filter Chip for Liked Recipes -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipShowLikedOnly"
-            android:layout_width="wrap_content"
+        <!-- Search bar and Filter Chip Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:text="❤ Liked Recipes"
-            android:textStyle="bold"
-            android:checkable="true"
-            android:checked="false"
-            style="@style/Widget.Material3.Chip.Filter" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp">
+
+            <!-- Search Bar -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/searchInputLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxCornerRadiusTopStart="24dp"
+                app:boxCornerRadiusTopEnd="24dp"
+                app:boxCornerRadiusBottomStart="24dp"
+                app:boxCornerRadiusBottomEnd="24dp"
+                app:hintEnabled="false"
+                app:boxStrokeWidth="1dp"
+                app:startIconDrawable="@android:drawable/ic_menu_search"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/searchEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Search recipes..."
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textSize="14sp"
+                    android:paddingVertical="8dp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Filter Chip for Liked Recipes -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipShowLikedOnly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❤ Liked Recipes"
+                android:textStyle="bold"
+                android:checkable="true"
+                android:checked="false"
+                style="@style/Widget.Material3.Chip.Filter" />
+
+        </LinearLayout>
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefresh"
