@@ -41,8 +41,10 @@ class RegistrationActivity : AppCompatActivity() {
         val firebaseModel = FirebaseModel()
 
         fun updateFieldsForMode(isRegister: Boolean) {
-            etEmail.visibility = if (isRegister) View.VISIBLE else View.GONE
+            etUsername.visibility = if (isRegister) View.VISIBLE else View.GONE
+            etEmail.visibility = View.VISIBLE
             etPassword.visibility = View.VISIBLE
+            etEmail.hint = if (isRegister) "Email" else "Email"
             btnNext.text = if (isRegister) getString(R.string.button_register) else getString(R.string.button_sign_in_username)
         }
 
@@ -59,7 +61,8 @@ class RegistrationActivity : AppCompatActivity() {
 
             val isRegister = switchMode.isChecked
 
-            if (username.isEmpty()) {
+            // For register mode, username is required
+            if (isRegister && username.isEmpty()) {
                 Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -85,118 +88,111 @@ class RegistrationActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
 
-                db.collection("users").whereEqualTo("name", username).get()
-                    .addOnSuccessListener { snap ->
-                        if (!snap.isEmpty) {
-                            Toast.makeText(this, "Username already taken, choose another", Toast.LENGTH_LONG).show()
-                            btnNext.isEnabled = true
-                            return@addOnSuccessListener
-                        }
+                // Create auth user FIRST, then check username (user needs to be authenticated to query Firestore)
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnSuccessListener {
+                        val user = auth.currentUser
+                        val uid = user?.uid
 
-                        auth.createUserWithEmailAndPassword(email, password)
-                            .addOnSuccessListener {
-                                val user = auth.currentUser
-                                val uid = user?.uid
+                        if (uid != null) {
+                            // Now check username availability (user is authenticated)
+                            db.collection("users").whereEqualTo("name", username).get()
+                                .addOnSuccessListener { snap ->
+                                    if (!snap.isEmpty) {
+                                        // Username taken - delete the auth user we just created
+                                        user.delete()
+                                        Toast.makeText(this, "Username already taken, choose another", Toast.LENGTH_LONG).show()
+                                        btnNext.isEnabled = true
+                                        return@addOnSuccessListener
+                                    }
 
-                                if (uid != null) {
+                                    // Username available - create user document
                                     firebaseModel.createOrUpdateUserDocument(uid, username, email) { success, err ->
                                         if (!success) {
-                                            if (err != null) showExceptionDialog(err) else showErrorDialog("Failed to write user document to Firestore. Please check your Firestore rules and network.")
+                                            user.delete()
+                                            if (err != null) showExceptionDialog(err) else showErrorDialog("Failed to write user document to Firestore.")
                                             btnNext.isEnabled = true
                                             return@createOrUpdateUserDocument
                                         }
-
                                         saveCredentialsAndContinue(username, email, uid)
                                     }
-                                } else {
-                                    showErrorDialog("Registration created but no user id returned. Try signing in.")
+                                }
+                                .addOnFailureListener { e ->
+                                    user.delete()
+                                    showErrorDialog("Failed checking username availability: ${e.localizedMessage}")
                                     btnNext.isEnabled = true
                                 }
-                            }
-                            .addOnFailureListener { createEx ->
-                                if (createEx is FirebaseAuthUserCollisionException) {
-                                    auth.signInWithEmailAndPassword(email, password)
-                                        .addOnSuccessListener {
-                                            val user = auth.currentUser
-                                            val uid = user?.uid
-                                            if (uid != null) {
-                                                firebaseModel.createOrUpdateUserDocument(uid, username, email) { success, err ->
-                                                    if (success) {
-                                                        saveCredentialsAndContinue(username, email, uid)
-                                                    } else {
-                                                        if (err != null) showExceptionDialog(err) else showErrorDialog("Failed to write user document after sign-in. Please check Firestore rules.")
-                                                        btnNext.isEnabled = true
-                                                    }
-                                                }
-                                            } else {
+                        } else {
+                            showErrorDialog("Registration created but no user id returned.")
+                            btnNext.isEnabled = true
+                        }
+                    }
+                    .addOnFailureListener { createEx ->
+                        if (createEx is FirebaseAuthUserCollisionException) {
+                            // Email already registered - try to sign in
+                            auth.signInWithEmailAndPassword(email, password)
+                                .addOnSuccessListener {
+                                    val user = auth.currentUser
+                                    val uid = user?.uid
+                                    if (uid != null) {
+                                        firebaseModel.createOrUpdateUserDocument(uid, username, email) { success, err ->
+                                            if (success) {
                                                 saveCredentialsAndContinue(username, email, uid)
+                                            } else {
+                                                if (err != null) showExceptionDialog(err) else showErrorDialog("Failed to write user document after sign-in.")
+                                                btnNext.isEnabled = true
                                             }
                                         }
-                                        .addOnFailureListener { signInEx ->
-                                            showExceptionDialog(signInEx)
-                                            btnNext.isEnabled = true
-                                        }
-                                } else {
-                                    showExceptionDialog(createEx)
+                                    } else {
+                                        saveCredentialsAndContinue(username, email, uid)
+                                    }
+                                }
+                                .addOnFailureListener { signInEx ->
+                                    showExceptionDialog(signInEx)
                                     btnNext.isEnabled = true
                                 }
-                            }
-                    }
-                    .addOnFailureListener { e ->
-                        showErrorDialog("Failed checking username availability: ${e.localizedMessage}")
-                        btnNext.isEnabled = true
+                        } else {
+                            showExceptionDialog(createEx)
+                            btnNext.isEnabled = true
+                        }
                     }
 
             } else {
-                db.collection("users").whereEqualTo("name", username).get()
-                    .addOnSuccessListener { snap ->
-                        if (snap.isEmpty) {
-                            Toast.makeText(this, "No user found with that username", Toast.LENGTH_LONG).show()
-                            btnNext.isEnabled = true
-                            return@addOnSuccessListener
-                        }
+                // Login mode - use email directly
+                if (email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                    btnNext.isEnabled = true
+                    return@setOnClickListener
+                }
 
-                        val doc = snap.documents.first()
-                        val storedEmail = doc.getString("email")
+                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                    btnNext.isEnabled = true
+                    return@setOnClickListener
+                }
 
-                        val enteredPassword = password
+                auth.signInWithEmailAndPassword(email, password)
+                    .addOnSuccessListener {
+                        val user = auth.currentUser
+                        val uid = user?.uid
 
-                        if (storedEmail.isNullOrEmpty()) {
-                            Toast.makeText(this, "This account cannot sign in by username only. Please register with email.", Toast.LENGTH_LONG).show()
-                            btnNext.isEnabled = true
-                            return@addOnSuccessListener
-                        }
-
-                        if (enteredPassword.isEmpty()) {
-                            Toast.makeText(this, "Please enter your password to sign in", Toast.LENGTH_LONG).show()
-                            btnNext.isEnabled = true
-                            return@addOnSuccessListener
-                        }
-
-                        auth.signInWithEmailAndPassword(storedEmail, enteredPassword)
-                            .addOnSuccessListener {
-                                val user = auth.currentUser
-                                val uid = user?.uid ?: doc.getString("userId")
-                                if (uid != null) {
-                                    firebaseModel.createOrUpdateUserDocument(uid, username, storedEmail) { success, err ->
-                                        if (success) {
-                                            saveCredentialsAndContinue(username, storedEmail, uid)
-                                        } else {
-                                            if (err != null) showExceptionDialog(err) else showErrorDialog("Failed to write user document after sign-in. Please check Firestore rules.")
-                                            btnNext.isEnabled = true
-                                        }
-                                    }
-                                } else {
-                                    saveCredentialsAndContinue(username, storedEmail, uid)
+                        if (uid != null) {
+                            // Fetch the username from Firestore (now authenticated)
+                            db.collection("users").document(uid).get()
+                                .addOnSuccessListener { doc ->
+                                    val storedUsername = doc.getString("name") ?: email.substringBefore("@")
+                                    saveCredentialsAndContinue(storedUsername, email, uid)
                                 }
-                            }
-                            .addOnFailureListener { signInEx ->
-                                showExceptionDialog(signInEx)
-                                btnNext.isEnabled = true
-                            }
+                                .addOnFailureListener {
+                                    // If we can't get username, use email prefix
+                                    saveCredentialsAndContinue(email.substringBefore("@"), email, uid)
+                                }
+                        } else {
+                            saveCredentialsAndContinue(email.substringBefore("@"), email, uid)
+                        }
                     }
-                    .addOnFailureListener { e ->
-                        showExceptionDialog(e)
+                    .addOnFailureListener { signInEx ->
+                        showExceptionDialog(signInEx)
                         btnNext.isEnabled = true
                     }
             }
