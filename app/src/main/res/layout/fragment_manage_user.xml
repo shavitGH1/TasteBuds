@@ -33,20 +33,18 @@
                     android:layout_width="120dp"
                     android:layout_height="120dp">
 
-                    <View
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
-                        android:background="@drawable/avatar_bg_oval" />
-
+                    <!-- Avatar ImageView is circular by using the oval drawable as background and clipToOutline -->
                     <ImageView
                         android:id="@+id/ivAvatar"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
                         android:src="@drawable/ic_baseline_person_24"
-                        android:scaleType="centerInside"
-                        android:contentDescription="User profile icon"
-                        app:tint="#FFFFFF"
-                        android:padding="30dp" />
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/recipe_image_desc"
+                        android:background="@drawable/avatar_bg_oval"
+                        android:clipToOutline="true"
+                        app:tint="#FFFFFF" />
+
                 </FrameLayout>
 
                 <!-- Edit Photo Button -->
@@ -295,4 +293,3 @@
     </LinearLayout>
 
 </ScrollView>
-

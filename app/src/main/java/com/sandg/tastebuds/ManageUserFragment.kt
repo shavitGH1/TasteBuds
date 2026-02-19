@@ -99,7 +99,7 @@ class ManageUserFragment : Fragment() {
                 try {
                     com.squareup.picasso.Picasso.get()
                         .load(file)
-                        .fit()
+                        .resize(120, 120)
                         .centerCrop()
                         .into(ivAvatar)
                     // Remove tint when showing photo
@@ -184,7 +184,7 @@ class ManageUserFragment : Fragment() {
             ivAvatar?.let {
                 com.squareup.picasso.Picasso.get()
                     .load(file)
-                    .fit()
+                    .resize(120, 120)
                     .centerCrop()
                     .into(it)
                 // Remove tint when showing photo
@@ -279,7 +279,7 @@ class ManageUserFragment : Fragment() {
                     }
                 }
             } else {
-                // reauthentication failed  most likely old password incorrect
+                // reauthentication failed  most likely old password incorrect
                 onComplete(false, "Old password not correct - could not update password")
             }
         }
