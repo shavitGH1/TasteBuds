@@ -149,9 +149,10 @@ class FeedFragment : Fragment() {
         val popup = PopupMenu(requireContext(), view)
         popup.menuInflater.inflate(R.menu.recipe_options_menu, popup.menu)
 
-        // Hide delete option if not the owner
+        // Hide edit/delete options if not the owner
         if (!isOwner) {
             popup.menu.findItem(R.id.action_delete_recipe)?.isVisible = false
+            popup.menu.findItem(R.id.action_edit_recipe)?.isVisible = false
         }
 
         popup.setOnMenuItemClickListener { menuItem ->

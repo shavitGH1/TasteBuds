@@ -90,8 +90,9 @@
                 android:layout_height="28dp"
                 android:layout_marginEnd="8dp"
                 android:padding="2dp"
-                android:contentDescription="Recipe options"
-                android:src="@android:drawable/ic_menu_more"
+                android:contentDescription="@string/recipe_options"
+                android:src="@drawable/ic_more_vert"
+                app:tint="#666666"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageView

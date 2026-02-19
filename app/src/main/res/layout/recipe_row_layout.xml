@@ -101,8 +101,9 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:padding="4dp"
-            android:contentDescription="Recipe options"
-            android:src="@android:drawable/ic_menu_more"
+            android:contentDescription="@string/recipe_options"
+            android:src="@drawable/ic_more_vert"
+            app:tint="#666666"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:layout_constraintEnd_toStartOf="@+id/favorite_image"
             app:layout_constraintTop_toTopOf="parent" />

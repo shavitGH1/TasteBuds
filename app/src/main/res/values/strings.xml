@@ -67,4 +67,7 @@
     <string name="button_register">Register</string>
     <string name="button_sign_in_username">Log in</string>
 
+    <!-- Recipe options -->
+    <string name="recipe_options">Options</string>
+
 </resources>
