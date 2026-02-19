@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
 import com.sandg.tastebuds.databinding.FragmentRecipeDetailBinding
 import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
@@ -47,15 +48,14 @@ class RecipeDetailFragment : Fragment() {
             return binding?.root
         }
 
-        binding?.metaTextView?.text = "Loading..."
-
-        lastFetchStartTime = System.currentTimeMillis()
-        Model.shared.getRecipeById(id) { r ->
-            activity?.runOnUiThread {
-                if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
-                recipe = r
-                bindRecipe(r)
-            }
+        // First, try to get the recipe from SharedViewModel (includes favorite state)
+        val existingRecipe = sharedVm.recipes.value?.firstOrNull { it.id == id }
+        if (existingRecipe != null) {
+            recipe = existingRecipe
+            bindRecipe(existingRecipe)
+        } else {
+            // If not in ViewModel yet, show loading
+            binding?.nameTextView?.text = "Loading..."
         }
 
         // Observe shared viewmodel so detail updates when favorites change elsewhere
@@ -66,6 +66,23 @@ class RecipeDetailFragment : Fragment() {
             if (updated != null) {
                 recipe = updated
                 bindRecipe(updated)
+            }
+        }
+
+        // Also fetch from Model to ensure we have the latest data (in background)
+        lastFetchStartTime = System.currentTimeMillis()
+        Model.shared.getRecipeById(id) { r ->
+            activity?.runOnUiThread {
+                if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
+                // Merge with favorite state from SharedViewModel
+                val currentRecipe = recipe
+                val mergedRecipe = if (currentRecipe != null) {
+                    r.copy(isFavorite = currentRecipe.isFavorite)
+                } else {
+                    r
+                }
+                recipe = mergedRecipe
+                bindRecipe(mergedRecipe)
             }
         }
 
@@ -83,7 +100,22 @@ class RecipeDetailFragment : Fragment() {
         }
 
         binding?.editButton?.setOnClickListener {
-            findNavController().navigate(R.id.action_global_addRecipeFragment)
+            recipe?.let { r ->
+                val bundle = Bundle().apply {
+                    putString("recipeId", r.id)
+                    putString("recipeName", r.name)
+                    putString("description", r.description)
+                    putInt("time", r.time ?: 30)
+                    putString("difficulty", r.difficulty)
+                    putInt("difficultyRating", r.difficultyRating ?: 0)
+                    putString("imageUrl", r.imageUrlString)
+                    putStringArrayList("steps", ArrayList(r.steps))
+                    // Ingredients need to be serialized
+                    val ingredientsJson = Gson().toJson(r.ingredients)
+                    putString("ingredientsJson", ingredientsJson)
+                }
+                findNavController().navigate(R.id.action_global_addRecipeFragment, bundle)
+            }
         }
 
         return binding?.root
@@ -91,27 +123,55 @@ class RecipeDetailFragment : Fragment() {
 
     private fun bindRecipe(r: Recipe) {
         binding?.nameTextView?.text = r.name
-        binding?.authorTextView?.text = r.publisher ?: ""
 
-        val timeText = r.time?.let { "$it min" } ?: ""
-        val difficultyText = r.difficulty ?: ""
-        val dietText = if (r.dietRestrictions.isNotEmpty()) r.dietRestrictions.joinToString(", ") else ""
-        val metaParts = listOf(timeText, difficultyText, dietText).filter { it.isNotEmpty() }
-        binding?.metaTextView?.text = metaParts.joinToString(" • ")
+        val timeText = r.time?.let { "$it minutes" } ?: "Not specified"
+        binding?.timeTextView?.text = timeText
 
-        binding?.descriptionTextView?.text = r.description ?: ""
+        // Show difficulty rating as stars if available
+        val difficultyText = if (r.difficultyRating != null) {
+            val stars = "★".repeat(r.difficultyRating) + "☆".repeat(5 - r.difficultyRating)
+            "$stars (${r.difficultyRating}/5)"
+        } else {
+            r.difficulty ?: "Not specified"
+        }
+        binding?.difficultyTextView?.text = difficultyText
+
+        binding?.descriptionTextView?.text = r.description ?: "No description available"
 
         updateFavoriteIcon(r.isFavorite)
 
-        binding?.imageView?.let { imageView ->
-            Picasso.get()
-                .load(r.imageUrlString)
-                .placeholder(R.drawable.ic_baseline_person_24)
-                .into(imageView)
+        val currentEmail = FirebaseAuth.getInstance().currentUser?.email
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+
+        // Setup user rating card (only for other people's recipes)
+        if (!currentUid.isNullOrEmpty() && r.publisherId != currentUid) {
+            binding?.ratingCard?.visibility = View.VISIBLE
+            setupUserRating(r, currentUid)
+        } else {
+            binding?.ratingCard?.visibility = View.GONE
         }
 
-        val currentEmail = FirebaseAuth.getInstance().currentUser?.email
-        if (!currentEmail.isNullOrEmpty() && !r.publisher.isNullOrEmpty() && currentEmail == r.publisher) {
+        // Load image only if URL is provided
+        if (!r.imageUrlString.isNullOrEmpty()) {
+            binding?.imageView?.let { imageView ->
+                Picasso.get()
+                    .load(r.imageUrlString)
+                    .into(imageView, object : com.squareup.picasso.Callback {
+                        override fun onSuccess() {
+                            binding?.imageCard?.visibility = View.VISIBLE
+                        }
+                        override fun onError(e: Exception?) {
+                            binding?.imageCard?.visibility = View.GONE
+                        }
+                    })
+            }
+        } else {
+            binding?.imageCard?.visibility = View.GONE
+        }
+
+        // Show edit button only for recipe owner
+        if ((!currentEmail.isNullOrEmpty() && !r.publisher.isNullOrEmpty() && currentEmail == r.publisher) ||
+            (!currentUid.isNullOrEmpty() && !r.publisherId.isNullOrEmpty() && currentUid == r.publisherId)) {
             binding?.editButton?.visibility = View.VISIBLE
         } else {
             binding?.editButton?.visibility = View.GONE
@@ -119,7 +179,8 @@ class RecipeDetailFragment : Fragment() {
 
         binding?.ingredientsContainer?.removeAllViews()
         r.ingredients.forEach { ing ->
-            val tv = TextView(requireContext())
+            val ctx = context ?: return
+            val tv = TextView(ctx)
             val amt = ing.amount?.let { if (it == it.toInt().toDouble()) it.toInt().toString() else it.toString() } ?: ""
             val unit = ing.unit ?: ""
             val text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} — $amt $unit".trim() else ing.name
@@ -130,10 +191,77 @@ class RecipeDetailFragment : Fragment() {
 
         binding?.stepsContainer?.removeAllViews()
         r.steps.forEachIndexed { idx, step ->
-            val tv = TextView(requireContext())
+            val ctx = context ?: return
+            val tv = TextView(ctx)
             tv.text = "${idx + 1}. $step"
             tv.setPadding(0, 6, 0, 6)
             binding?.stepsContainer?.addView(tv)
+        }
+    }
+
+    private fun setupUserRating(r: Recipe, currentUid: String) {
+        // Display average rating
+        val avgRating = r.getAverageRating()
+        val ratingCount = r.getRatingCount()
+        binding?.averageRatingText?.text = String.format("%.1f", avgRating)
+        binding?.ratingCountText?.text = "($ratingCount ${if (ratingCount == 1) "rating" else "ratings"})"
+
+        // Get current user's rating
+        val userRating = r.userRatings[currentUid] ?: 0
+
+        // Setup star click listeners
+        val stars = listOf(
+            binding?.userRatingStar1,
+            binding?.userRatingStar2,
+            binding?.userRatingStar3,
+            binding?.userRatingStar4,
+            binding?.userRatingStar5
+        )
+
+        stars.forEachIndexed { index, star ->
+            // Set initial state
+            if (index < userRating) {
+                star?.setImageResource(android.R.drawable.btn_star_big_on)
+            } else {
+                star?.setImageResource(android.R.drawable.btn_star_big_off)
+            }
+
+            // Set click listener
+            star?.setOnClickListener {
+                val newRating = index + 1
+                saveUserRating(r, currentUid, newRating, stars)
+            }
+        }
+    }
+
+    private fun saveUserRating(r: Recipe, userId: String, rating: Int, stars: List<android.widget.ImageView?>) {
+        // Update stars visually
+        stars.forEachIndexed { index, star ->
+            if (index < rating) {
+                star?.setImageResource(android.R.drawable.btn_star_big_on)
+            } else {
+                star?.setImageResource(android.R.drawable.btn_star_big_off)
+            }
+        }
+
+        // Update recipe with new rating
+        val updatedRatings = r.userRatings.toMutableMap()
+        updatedRatings[userId] = rating
+
+        val updatedRecipe = r.copy(userRatings = updatedRatings)
+
+        // Save to Firebase
+        Model.shared.addRecipe(updatedRecipe) {
+            activity?.runOnUiThread {
+                // Update local recipe and display
+                recipe = updatedRecipe
+                val avgRating = updatedRecipe.getAverageRating()
+                val ratingCount = updatedRecipe.getRatingCount()
+                binding?.averageRatingText?.text = String.format("%.1f", avgRating)
+                binding?.ratingCountText?.text = "($ratingCount ${if (ratingCount == 1) "rating" else "ratings"})"
+
+                android.widget.Toast.makeText(requireContext(), "Rating saved!", android.widget.Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -150,10 +278,11 @@ class RecipeDetailFragment : Fragment() {
 
     private fun animateFavoriteToggle(isFavorite: Boolean) {
         val fab = binding?.favoriteFab ?: return
+        val ctx = context ?: return
         fab.imageTintList = null
 
         if (isFavorite) {
-            val animDrawable = androidx.core.content.res.ResourcesCompat.getDrawable(resources, R.drawable.avd_heart_fill, requireContext().theme)
+            val animDrawable = androidx.core.content.res.ResourcesCompat.getDrawable(resources, R.drawable.avd_heart_fill, ctx.theme)
             if (animDrawable != null) {
                 fab.setImageDrawable(animDrawable)
                 if (animDrawable is Animatable) (animDrawable as Animatable).start()

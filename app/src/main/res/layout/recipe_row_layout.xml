@@ -19,53 +19,108 @@
             android:layout_height="96dp"
             android:layout_marginEnd="16dp"
             android:scaleType="centerCrop"
+            android:background="#E0E0E0"
             android:contentDescription="@string/recipe_image_desc"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/avatar" />
-
-        <TextView
-            android:id="@+id/name_text_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:text="@string/recipe_name"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/author_text_view"
-            app:layout_constraintEnd_toStartOf="@+id/favorite_image"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/image_view"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/author_text_view"
+            android:id="@+id/name_text_view"
+            style="@style/TextAppearance.TasteBuds.RecipeName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/recipe_name"
+            android:textDirection="ltr"
+            app:layout_constraintEnd_toStartOf="@+id/options_button"
+            app:layout_constraintStart_toEndOf="@+id/image_view"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Star Rating Display -->
+        <LinearLayout
+            android:id="@+id/rating_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toEndOf="@+id/image_view"
+            app:layout_constraintEnd_toStartOf="@+id/options_button"
+            app:layout_constraintTop_toBottomOf="@+id/name_text_view">
+
+            <TextView
+                android:id="@+id/rating_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#FF6B35" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" ★"
+                android:textSize="12sp"
+                android:textColor="#FFD700"
+                android:layout_marginStart="2dp" />
+
+            <TextView
+                android:id="@+id/rating_count_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="(0)"
+                android:textSize="10sp"
+                android:textColor="#999999"
+                android:layout_marginStart="4dp" />
+
+            <!-- Difficulty Rating Separator -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • "
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:layout_marginStart="4dp"
+                android:id="@+id/difficulty_separator" />
+
+            <!-- Difficulty Rating Display -->
+            <TextView
+                android:id="@+id/difficulty_rating_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your: ★★★☆☆"
+                android:textSize="11sp"
+                android:textColor="#666666" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/options_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:contentDescription="Recipe options"
+            android:src="@android:drawable/ic_menu_more"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:layout_constraintEnd_toStartOf="@+id/favorite_image"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/meta_text_view"
+            style="@style/TextAppearance.TasteBuds.Meta"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginTop="4dp"
-            android:text="@string/by_publisher"
-            android:textSize="12sp"
-            app:layout_constraintBottom_toTopOf="@+id/meta_text_view"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/image_view"
-            app:layout_constraintTop_toBottomOf="@+id/name_text_view" />
-
-        <TextView
-            android:id="@+id/meta_text_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/default_time"
-            android:textSize="12sp"
+            android:textDirection="ltr"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintEnd_toStartOf="@+id/options_button"
             app:layout_constraintStart_toEndOf="@+id/image_view"
-            app:layout_constraintTop_toBottomOf="@+id/author_text_view" />
+            app:layout_constraintTop_toBottomOf="@+id/rating_layout" />
 
         <ImageView
             android:id="@+id/favorite_image"

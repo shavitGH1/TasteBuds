@@ -35,12 +35,31 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
         private val ivImage = view.findViewById<ImageView>(R.id.ivImage)
         private val tvName = view.findViewById<TextView>(R.id.tvName)
         private val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
+        private val tvRating = view.findViewById<TextView>(R.id.tvRating)
+        private val tvRatingCount = view.findViewById<TextView>(R.id.tvRatingCount)
         private val fav = view.findViewById<ImageView>(R.id.favoriteImage)
+        private val optionsBtn = view.findViewById<ImageView>(R.id.optionsButton)
 
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
             tvPublisher.text = recipe.publisher ?: ""
-            Picasso.get().load(recipe.imageUrlString).placeholder(R.drawable.ic_baseline_person_24).into(ivImage)
+
+            // Display rating
+            val avgRating = recipe.getAverageRating()
+            val ratingCount = recipe.getRatingCount()
+            if (ratingCount > 0) {
+                tvRating.text = String.format("%.1f", avgRating)
+                tvRatingCount.text = "($ratingCount)"
+            } else {
+                tvRating.text = "0.0"
+                tvRatingCount.text = "(0)"
+            }
+
+            if (!recipe.imageUrlString.isNullOrEmpty()) {
+                Picasso.get().load(recipe.imageUrlString).into(ivImage)
+            } else {
+                ivImage.setImageDrawable(null)
+            }
 
             // Update favorite icon based on recipe state
             fav.setImageResource(if (recipe.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
@@ -53,6 +72,11 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
                 // Optimistic UI update
                 fav.setImageResource(if (toggled.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
                 listener?.onToggleFavorite(toggled)
+            }
+
+            // Options button click
+            optionsBtn.setOnClickListener { v ->
+                listener?.onRecipeOptions(recipe, v)
             }
         }
     }

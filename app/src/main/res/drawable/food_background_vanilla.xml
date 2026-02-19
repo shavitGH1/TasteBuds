@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft lavender-cream background for profile and settings pages -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Lavender cream gradient -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="180"
+                android:startColor="#FFF8F5"
+                android:centerColor="#FFEFEB"
+                android:endColor="#FFE5DD"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Soft lavender tint overlay -->
+    <item>
+        <shape>
+            <gradient
+                android:angle="0"
+                android:startColor="#18E6D5E8"
+                android:centerColor="#12DDA0DD"
+                android:endColor="#18D8BFD8"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>
+

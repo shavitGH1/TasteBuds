@@ -90,16 +90,6 @@
             android:layout_height="wrap_content"
             android:padding="24dp">
 
-            <!-- Mode switch: Sign In (username only) / Register (email+password) -->
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchMode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Register"
-                android:checked="true"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-
             <!-- Username Input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/usernameInputLayout"
@@ -111,7 +101,7 @@
                 app:hintTextColor="#FF6B35"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/switchMode">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etUsername"
@@ -181,6 +171,16 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/passwordInputLayout" />
 
+            <!-- Mode switch: MOVED TO BOTTOM - Login default -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Register"
+                android:checked="false"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/btnGoToRecipes"
+                app:layout_constraintStart_toStartOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

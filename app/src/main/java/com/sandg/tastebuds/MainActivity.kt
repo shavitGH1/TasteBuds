@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.sandg.tastebuds.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -29,12 +30,29 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(binding?.root)
 
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+
+        // Handle edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            // Apply only top inset here — fragments/layouts will manage bottom space (e.g., bottom nav)
+            // Apply top padding only to main container
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
-            insets
+
+            // Set bottom MARGIN on navbar to push it above system buttons (not padding inside)
+            val params = bottomNav.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.bottomMargin = systemBars.bottom
+            bottomNav.layoutParams = params
+
+            WindowInsetsCompat.CONSUMED
         }
+
+        // Keep navbar itself compact - no internal padding
+        bottomNav.setPadding(0, 0, 0, 0)
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav) { view, insets ->
+            view.setPadding(0, 0, 0, 0)
+            WindowInsetsCompat.CONSUMED
+        }
+
         setupTopBar()
     }
 

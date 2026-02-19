@@ -41,6 +41,10 @@ class RecipesListFragment : Fragment() {
             override fun onToggleFavorite(recipe: Recipe) {
                 sharedVm.toggleFavorite(recipe)
             }
+
+            override fun onRecipeOptions(recipe: Recipe, view: View) {
+                // Options menu not needed here, but required by interface
+            }
         }
 
         binding?.recyclerView?.adapter = adapter
@@ -51,13 +55,40 @@ class RecipesListFragment : Fragment() {
 
         binding?.progressBar?.visibility = View.VISIBLE
 
+        // Setup recommendations
+        setupRecommendations()
+
         sharedVm.recipes.observe(viewLifecycleOwner) { list ->
             binding?.progressBar?.visibility = View.GONE
             adapter.submitList(list.toList())
+
+            // Update recommendations when recipes change
+            updateRecommendations(list)
         }
 
         binding?.addRecipeFab?.setOnClickListener {
             view?.findNavController()?.navigate(R.id.action_global_addRecipeFragment)
+        }
+    }
+
+    private fun setupRecommendations() {
+        binding?.recommendationsRecyclerView?.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+    }
+
+    private fun updateRecommendations(allRecipes: List<Recipe>) {
+        // Get random recommendations (max 5)
+        val recommendations = allRecipes.shuffled().take(5)
+
+        if (recommendations.isNotEmpty()) {
+            binding?.recommendationsCard?.visibility = View.VISIBLE
+
+            val recommendationsAdapter = RecommendationsAdapter(recommendations) { recipe ->
+                navigateToRecipeDetail(recipe)
+            }
+            binding?.recommendationsRecyclerView?.adapter = recommendationsAdapter
+        } else {
+            binding?.recommendationsCard?.visibility = View.GONE
         }
     }
 

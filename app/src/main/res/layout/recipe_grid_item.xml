@@ -17,31 +17,91 @@
             android:layout_width="match_parent"
             android:layout_height="140dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/avatar" />
+            android:background="#E0E0E0"
+            android:contentDescription="@string/recipe_image_desc" />
 
         <TextView
             android:id="@+id/tvName"
+            style="@style/TextAppearance.TasteBuds.RecipeName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:textStyle="bold"
+            android:paddingBottom="4dp"
             android:textSize="14sp" />
+
+        <!-- Star Rating Display -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp"
+            android:gravity="start">
+
+            <TextView
+                android:id="@+id/tvRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.0"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#FF6B35" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" ★"
+                android:textSize="12sp"
+                android:textColor="#FFD700"
+                android:layout_marginStart="2dp" />
+
+            <TextView
+                android:id="@+id/tvRatingCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="(0)"
+                android:textSize="10sp"
+                android:textColor="#999999"
+                android:layout_marginStart="4dp" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvPublisher"
+            style="@style/TextAppearance.TasteBuds.Meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="8dp"
             android:paddingBottom="8dp"
             android:textSize="12sp" />
 
-        <ImageView
-            android:id="@+id/favoriteImage"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_margin="8dp"
-            android:layout_gravity="end"
-            android:src="@drawable/ic_favorite_border" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp">
+
+            <ImageView
+                android:id="@+id/optionsButton"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="8dp"
+                android:padding="2dp"
+                android:contentDescription="Recipe options"
+                android:src="@android:drawable/ic_menu_more"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageView
+                android:id="@+id/favoriteImage"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_favorite_border"
+                android:contentDescription="@string/favorite" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>
