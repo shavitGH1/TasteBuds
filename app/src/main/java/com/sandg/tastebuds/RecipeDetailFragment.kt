@@ -129,7 +129,7 @@ class RecipeDetailFragment : Fragment() {
 
         // Show difficulty rating as stars if available
         val difficultyText = if (r.difficultyRating != null) {
-            val stars = "★".repeat(r.difficultyRating) + "☆".repeat(5 - r.difficultyRating)
+            val stars = "\u2605".repeat(r.difficultyRating) + "\u2606".repeat(5 - r.difficultyRating)
             "$stars (${r.difficultyRating}/5)"
         } else {
             r.difficulty ?: "Not specified"
@@ -183,7 +183,7 @@ class RecipeDetailFragment : Fragment() {
             val tv = TextView(ctx)
             val amt = ing.amount?.let { if (it == it.toInt().toDouble()) it.toInt().toString() else it.toString() } ?: ""
             val unit = ing.unit ?: ""
-            val text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} — $amt $unit".trim() else ing.name
+            val text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} \u2014 $amt $unit".trim() else ing.name
             tv.text = text
             tv.setPadding(0, 6, 0, 6)
             binding?.ingredientsContainer?.addView(tv)
@@ -260,7 +260,7 @@ class RecipeDetailFragment : Fragment() {
                 binding?.averageRatingText?.text = String.format("%.1f", avgRating)
                 binding?.ratingCountText?.text = "($ratingCount ${if (ratingCount == 1) "rating" else "ratings"})"
 
-                android.widget.Toast.makeText(requireContext(), "Rating saved!", android.widget.Toast.LENGTH_SHORT).show()
+                showStyledToast("Rating saved!", android.R.drawable.ic_menu_save, true)
             }
         }
     }

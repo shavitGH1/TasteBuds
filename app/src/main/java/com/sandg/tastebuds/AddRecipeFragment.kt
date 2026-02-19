@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.navigation.findNavController
 import com.sandg.tastebuds.databinding.FragmentAddRecipeBinding
 import com.sandg.tastebuds.models.Ingredient
@@ -74,7 +73,7 @@ class AddRecipeFragment : Fragment() {
             if (!imageUrl.isNullOrEmpty() && isValidUrl(imageUrl)) {
                 loadImagePreview(imageUrl)
             } else {
-                showToast(getString(R.string.error_invalid_url))
+                showStyledToast(getString(R.string.error_invalid_url))
             }
         }
 
@@ -91,7 +90,7 @@ class AddRecipeFragment : Fragment() {
         // Validate recipe name
         val recipeName: String = binding?.nameEditText?.text.toString().trim()
         if (recipeName.isEmpty()) {
-            showToast(getString(R.string.error_recipe_name_required))
+            showStyledToast(getString(R.string.error_recipe_name_required))
             binding?.loadingIndicator?.visibility = View.GONE
             binding?.saveRecipeButton?.isEnabled = true
             return
@@ -101,7 +100,7 @@ class AddRecipeFragment : Fragment() {
         val timeText = binding?.preparationTimeEditText?.text?.toString()?.trim()
         val time: Int? = timeText?.toIntOrNull()
         if (timeText.isNullOrEmpty() || time == null || time <= 0) {
-            showToast(getString(R.string.error_invalid_time))
+            showStyledToast(getString(R.string.error_invalid_time))
             binding?.loadingIndicator?.visibility = View.GONE
             binding?.saveRecipeButton?.isEnabled = true
             return
@@ -110,7 +109,7 @@ class AddRecipeFragment : Fragment() {
         // Validate image URL
         val imageUrl: String? = binding?.imageUrlEditText?.text?.toString()?.trim()
         if (!imageUrl.isNullOrEmpty() && !isValidUrl(imageUrl)) {
-            showToast(getString(R.string.error_invalid_url))
+            showStyledToast(getString(R.string.error_invalid_url))
             binding?.loadingIndicator?.visibility = View.GONE
             binding?.saveRecipeButton?.isEnabled = true
             return
@@ -132,7 +131,7 @@ class AddRecipeFragment : Fragment() {
 
         // Validate ingredients
         if (ingredientsList.isEmpty()) {
-            showToast(getString(R.string.error_no_ingredients))
+            showStyledToast(getString(R.string.error_no_ingredients))
             binding?.loadingIndicator?.visibility = View.GONE
             binding?.saveRecipeButton?.isEnabled = true
             return
@@ -140,7 +139,7 @@ class AddRecipeFragment : Fragment() {
 
         // Validate steps
         if (stepsList.isEmpty()) {
-            showToast(getString(R.string.error_no_steps))
+            showStyledToast(getString(R.string.error_no_steps))
             binding?.loadingIndicator?.visibility = View.GONE
             binding?.saveRecipeButton?.isEnabled = true
             return
@@ -191,7 +190,7 @@ class AddRecipeFragment : Fragment() {
             activity?.runOnUiThread {
                 binding?.loadingIndicator?.visibility = View.GONE
                 binding?.saveRecipeButton?.isEnabled = true
-                showToast(getString(R.string.success_recipe_saved))
+                showStyledToast(getString(R.string.success_recipe_saved), android.R.drawable.ic_menu_save, true)
                 dismiss()
             }
         }
@@ -248,14 +247,10 @@ class AddRecipeFragment : Fragment() {
                     }
                     override fun onError(e: Exception?) {
                         imageView.visibility = View.GONE
-                        showToast("Failed to load image. Please check the URL.")
+                        showStyledToast("Failed to load image. Please check the URL.")
                     }
                 })
         }
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
     }
 
     private fun addStepEditText(initialText: String) {

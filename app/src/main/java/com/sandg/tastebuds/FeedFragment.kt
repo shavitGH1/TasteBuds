@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -161,7 +160,7 @@ class FeedFragment : Fragment() {
                     if (isOwner) {
                         editRecipe(recipe)
                     } else {
-                        Toast.makeText(requireContext(), "You can only edit your own recipes", Toast.LENGTH_SHORT).show()
+                        showStyledToast("You can only edit your own recipes")
                     }
                     true
                 }
@@ -169,7 +168,7 @@ class FeedFragment : Fragment() {
                     if (isOwner) {
                         deleteRecipe(recipe)
                     } else {
-                        Toast.makeText(requireContext(), "You can only delete your own recipes", Toast.LENGTH_SHORT).show()
+                        showStyledToast("You can only delete your own recipes")
                     }
                     true
                 }
@@ -204,7 +203,7 @@ class FeedFragment : Fragment() {
             .setMessage("Are you sure you want to delete \"${recipe.name}\"?")
             .setPositiveButton("Delete") { _, _ ->
                 Model.shared.deleteRecipe(recipe)
-                Toast.makeText(requireContext(), "Recipe deleted", Toast.LENGTH_SHORT).show()
+                showStyledToast("Recipe deleted")
                 sharedVm.reloadAll {}
             }
             .setNegativeButton("Cancel", null)
@@ -219,7 +218,7 @@ class FeedFragment : Fragment() {
             }
             append("Ingredients:\n")
             recipe.ingredients.forEach { ing ->
-                append("• ${ing.amount?.toString() ?: ""} ${ing.unit ?: ""} ${ing.name}\n")
+                append("\u2022 ${ing.amount?.toString() ?: ""} ${ing.unit ?: ""} ${ing.name}\n")
             }
             append("\nSteps:\n")
             recipe.steps.forEachIndexed { idx, step ->

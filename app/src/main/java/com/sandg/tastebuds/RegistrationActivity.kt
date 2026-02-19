@@ -4,8 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import com.google.firebase.Firebase
@@ -14,11 +12,6 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.firestore
 import com.sandg.tastebuds.databinding.ActivityRegistrationBinding
 import com.sandg.tastebuds.models.FirebaseModel
-import android.view.LayoutInflater
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.annotation.DrawableRes
-import android.view.animation.AnimationUtils
 
 class RegistrationActivity : AppCompatActivity() {
 
@@ -63,7 +56,7 @@ class RegistrationActivity : AppCompatActivity() {
 
             // For register mode, username is required
             if (isRegister && username.isEmpty()) {
-                Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show()
+                showStyledToast("Please enter a username")
                 return@setOnClickListener
             }
 
@@ -71,19 +64,19 @@ class RegistrationActivity : AppCompatActivity() {
 
             if (isRegister) {
                 if (email.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                    showStyledToast("Please enter email and password")
                     btnNext.isEnabled = true
                     return@setOnClickListener
                 }
 
                 if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                    showStyledToast("Please enter a valid email address")
                     btnNext.isEnabled = true
                     return@setOnClickListener
                 }
 
                 if (password.length < 6) {
-                    Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                    showStyledToast("Password must be at least 6 characters")
                     btnNext.isEnabled = true
                     return@setOnClickListener
                 }
@@ -101,7 +94,7 @@ class RegistrationActivity : AppCompatActivity() {
                                     if (!snap.isEmpty) {
                                         // Username taken - delete the auth user we just created
                                         user.delete()
-                                        Toast.makeText(this, "Username already taken, choose another", Toast.LENGTH_LONG).show()
+                                        showStyledToast("Username already taken, choose another")
                                         btnNext.isEnabled = true
                                         return@addOnSuccessListener
                                     }
@@ -126,6 +119,7 @@ class RegistrationActivity : AppCompatActivity() {
                             showErrorDialog("Registration created but no user id returned.")
                             btnNext.isEnabled = true
                         }
+
                     }
                     .addOnFailureListener { createEx ->
                         if (createEx is FirebaseAuthUserCollisionException) {
@@ -160,13 +154,13 @@ class RegistrationActivity : AppCompatActivity() {
             } else {
                 // Login mode - use email directly
                 if (email.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                    showStyledToast("Please enter email and password")
                     btnNext.isEnabled = true
                     return@setOnClickListener
                 }
 
                 if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                    showStyledToast("Please enter a valid email address")
                     btnNext.isEnabled = true
                     return@setOnClickListener
                 }
@@ -219,39 +213,8 @@ class RegistrationActivity : AppCompatActivity() {
         } catch (_: Exception) {
         }
 
-        showStyledToast("Welcome, $username!", android.R.drawable.ic_menu_send)
+        showStyledToast("Welcome, $username!", android.R.drawable.ic_menu_send, true)
         navigateToMainActivity()
-    }
-
-    // Styled toast helper
-    private fun showStyledToast(message: String, @DrawableRes iconRes: Int? = null) {
-        try {
-            val inflater = LayoutInflater.from(this)
-            val parent = findViewById<ViewGroup>(android.R.id.content)
-            val layout = inflater.inflate(R.layout.custom_toast, parent, false)
-            val tv = layout.findViewById<TextView>(R.id.toast_text)
-            val iv = layout.findViewById<ImageView>(R.id.toast_icon)
-            tv.text = message
-            if (iconRes != null) {
-                iv.setImageResource(iconRes)
-                iv.visibility = View.VISIBLE
-            } else {
-                iv.visibility = View.GONE
-            }
-
-            val toast = Toast(this)
-            toast.duration = if (iconRes == android.R.drawable.ic_menu_send) Toast.LENGTH_SHORT else Toast.LENGTH_LONG
-            try {
-                val anim = AnimationUtils.loadAnimation(this, R.anim.toast_fade)
-                layout.startAnimation(anim)
-            } catch (_: Exception) {
-            }
-            toast.view = layout
-            toast.setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
-            toast.show()
-        } catch (_: Exception) {
-            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-        }
     }
 
     private fun navigateToMainActivity() {

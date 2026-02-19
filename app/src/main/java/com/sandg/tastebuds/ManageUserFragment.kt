@@ -15,7 +15,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.EmailAuthProvider
@@ -155,12 +154,12 @@ class ManageUserFragment : Fragment() {
         val ivAvatar = view?.findViewById<ImageView>(R.id.ivAvatar)
         ivAvatar?.setImageResource(R.drawable.ic_baseline_person_24)
 
-        Toast.makeText(requireContext(), "Photo removed", Toast.LENGTH_SHORT).show()
+        showStyledToast("Photo removed")
     }
 
     private fun handlePhotoSelected(uri: Uri) {
         val user = FirebaseAuth.getInstance().currentUser ?: run {
-            Toast.makeText(requireContext(), "Not signed in", Toast.LENGTH_SHORT).show()
+            showStyledToast("Not signed in")
             return
         }
 
@@ -192,9 +191,9 @@ class ManageUserFragment : Fragment() {
                 it.imageTintList = null
             }
 
-            Toast.makeText(requireContext(), "Photo saved!", Toast.LENGTH_SHORT).show()
+            showStyledToast("Photo saved!", android.R.drawable.ic_menu_camera, true)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Failed to save photo", Toast.LENGTH_SHORT).show()
+            showStyledToast("Failed to save photo")
         }
     }
 
@@ -248,10 +247,10 @@ class ManageUserFragment : Fragment() {
             changePassword(old, nw) { success, msg ->
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
                 if (success) {
-                    Toast.makeText(requireContext(), msg ?: "Password changed", Toast.LENGTH_SHORT).show()
+                    showStyledToast(msg ?: "Password changed", android.R.drawable.ic_lock_lock, true)
                     dialog.dismiss()
                 } else {
-                    Toast.makeText(requireContext(), msg ?: "Failed to change password", Toast.LENGTH_LONG).show()
+                    showStyledToast(msg ?: "Failed to change password")
                 }
             }
         }
@@ -280,7 +279,7 @@ class ManageUserFragment : Fragment() {
                     }
                 }
             } else {
-                // reauthentication failed — most likely old password incorrect
+                // reauthentication failed  most likely old password incorrect
                 onComplete(false, "Old password not correct - could not update password")
             }
         }
