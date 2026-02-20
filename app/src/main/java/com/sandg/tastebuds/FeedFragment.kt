@@ -149,28 +149,19 @@ class FeedFragment : Fragment() {
         val popup = PopupMenu(requireContext(), view)
         popup.menuInflater.inflate(R.menu.recipe_options_menu, popup.menu)
 
-        // Hide edit/delete options if not the owner
-        if (!isOwner) {
-            popup.menu.findItem(R.id.action_delete_recipe)?.isVisible = false
-            popup.menu.findItem(R.id.action_edit_recipe)?.isVisible = false
-        }
+        // Edit and Delete are only for the owner
+        popup.menu.findItem(R.id.action_edit_recipe)?.isVisible = isOwner
+        popup.menu.findItem(R.id.action_delete_recipe)?.isVisible = isOwner
 
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_edit_recipe -> {
-                    if (isOwner) {
-                        editRecipe(recipe)
-                    } else {
-                        showStyledToast("You can only edit your own recipes")
-                    }
+                    if (isOwner) editRecipe(recipe)
+                    else showStyledToast("You can only edit your own recipes")
                     true
                 }
                 R.id.action_delete_recipe -> {
-                    if (isOwner) {
-                        deleteRecipe(recipe)
-                    } else {
-                        showStyledToast("You can only delete your own recipes")
-                    }
+                    deleteRecipe(recipe)
                     true
                 }
                 R.id.action_share_recipe -> {
