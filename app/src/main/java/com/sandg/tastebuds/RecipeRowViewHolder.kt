@@ -44,27 +44,25 @@ class RecipeRowViewHolder(
         this.recipe = recipe
         binding.nameTextView.text = recipe.name
 
-        // Display user star rating (only when rated)
+        // Always show star rating under the name
         val avgRating = recipe.getAverageRating()
         val ratingCount = recipe.getRatingCount()
+        binding.ratingTextView.visibility = android.view.View.VISIBLE
+        binding.starSymbolTextView.visibility = android.view.View.VISIBLE
+        binding.ratingCountTextView.visibility = android.view.View.VISIBLE
         if (ratingCount > 0) {
             binding.ratingTextView.text = String.format("%.1f", avgRating)
             binding.ratingCountTextView.text = "($ratingCount)"
-            binding.ratingTextView.visibility = android.view.View.VISIBLE
-            binding.starSymbolTextView.visibility = android.view.View.VISIBLE
-            binding.ratingCountTextView.visibility = android.view.View.VISIBLE
         } else {
-            binding.ratingTextView.visibility = android.view.View.GONE
-            binding.starSymbolTextView.visibility = android.view.View.GONE
-            binding.ratingCountTextView.visibility = android.view.View.GONE
+            binding.ratingTextView.text = "0.0"
+            binding.ratingCountTextView.text = "(0)"
         }
 
-        // Display difficulty label (always shown if set)
+        // Always show difficulty label when set
         val difficultyLabel = recipe.difficulty
         if (!difficultyLabel.isNullOrBlank()) {
+            binding.difficultySeparator.visibility = android.view.View.VISIBLE
             binding.difficultyRatingTextView.text = difficultyLabel
-            binding.difficultySeparator.visibility =
-                if (ratingCount > 0) android.view.View.VISIBLE else android.view.View.GONE
             binding.difficultyRatingTextView.visibility = android.view.View.VISIBLE
         } else {
             binding.difficultySeparator.visibility = android.view.View.GONE

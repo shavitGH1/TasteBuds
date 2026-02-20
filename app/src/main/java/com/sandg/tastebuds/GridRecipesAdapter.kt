@@ -34,6 +34,11 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
     inner class GridViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         private val ivImage = view.findViewById<ImageView>(R.id.ivImage)
         private val tvName = view.findViewById<TextView>(R.id.tvName)
+        private val tvRatingValue = view.findViewById<TextView>(R.id.tvRatingValue)
+        private val tvStarSymbol = view.findViewById<TextView>(R.id.tvStarSymbol)
+        private val tvRatingCount = view.findViewById<TextView>(R.id.tvRatingCount)
+        private val tvDifficultySep = view.findViewById<TextView>(R.id.tvDifficultySep)
+        private val tvDifficulty = view.findViewById<TextView>(R.id.tvDifficulty)
         private val tvMeta = view.findViewById<TextView>(R.id.tvMeta)
         private val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
         private val fav = view.findViewById<ImageView>(R.id.favoriteImage)
@@ -41,9 +46,26 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
 
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
-            val timeText = recipe.time?.let { "$it min" } ?: ""
-            val diffText = recipe.difficulty ?: ""
-            tvMeta.text = listOf(timeText, diffText).filter { it.isNotEmpty() }.joinToString(" • ")
+
+            // Star rating — always visible
+            val avgRating = recipe.getAverageRating()
+            val ratingCount = recipe.getRatingCount()
+            tvRatingValue.text = if (ratingCount > 0) String.format("%.1f", avgRating) else "0.0"
+            tvRatingCount.text = if (ratingCount > 0) "($ratingCount)" else "(0)"
+
+            // Difficulty — show separator + label only when set
+            val difficulty = recipe.difficulty
+            if (!difficulty.isNullOrBlank()) {
+                tvDifficultySep.visibility = View.VISIBLE
+                tvDifficulty.text = difficulty
+                tvDifficulty.visibility = View.VISIBLE
+            } else {
+                tvDifficultySep.visibility = View.GONE
+                tvDifficulty.visibility = View.GONE
+            }
+
+            // Time
+            tvMeta.text = recipe.time?.let { "$it min" } ?: ""
             tvPublisher.text = recipe.publisher ?: ""
 
 
