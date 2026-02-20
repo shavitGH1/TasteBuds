@@ -122,7 +122,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Difficulty Rating Card -->
+            <!-- Difficulty Level Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -139,76 +139,47 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⭐ Difficulty Level"
+                        android:text="🎯 Difficulty Level"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
                         android:layout_marginBottom="12dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rate the difficulty (1 = Easy, 5 = Very Hard)"
-                        android:textSize="12sp"
-                        android:textColor="#666666"
-                        android:layout_marginBottom="12dp" />
-
-                    <!-- Star Rating Row -->
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_gravity="center_horizontal">
+                        android:gravity="center_horizontal"
+                        android:weightSum="3">
 
-                        <ImageView
-                            android:id="@+id/difficulty_star_1"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@android:drawable/btn_star_big_off"
-                            android:padding="4dp"
-                            android:contentDescription="Star 1"
-                            android:clickable="true"
-                            android:focusable="true" />
+                        <Button
+                            android:id="@+id/difficulty_easy_button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:text="😊 Easy"
+                            android:textAllCaps="false"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
-                        <ImageView
-                            android:id="@+id/difficulty_star_2"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@android:drawable/btn_star_big_off"
-                            android:padding="4dp"
-                            android:contentDescription="Star 2"
-                            android:clickable="true"
-                            android:focusable="true" />
+                        <Button
+                            android:id="@+id/difficulty_medium_button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:text="🔥 Medium"
+                            android:textAllCaps="false"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
-                        <ImageView
-                            android:id="@+id/difficulty_star_3"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@android:drawable/btn_star_big_off"
-                            android:padding="4dp"
-                            android:contentDescription="Star 3"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <ImageView
-                            android:id="@+id/difficulty_star_4"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@android:drawable/btn_star_big_off"
-                            android:padding="4dp"
-                            android:contentDescription="Star 4"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <ImageView
-                            android:id="@+id/difficulty_star_5"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:src="@android:drawable/btn_star_big_off"
-                            android:padding="4dp"
-                            android:contentDescription="Star 5"
-                            android:clickable="true"
-                            android:focusable="true" />
+                        <Button
+                            android:id="@+id/difficulty_hard_button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="💀 Hard"
+                            android:textAllCaps="false"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     </LinearLayout>
 

@@ -44,22 +44,27 @@ class RecipeRowViewHolder(
         this.recipe = recipe
         binding.nameTextView.text = recipe.name
 
-        // Display rating
+        // Display user star rating (only when rated)
         val avgRating = recipe.getAverageRating()
         val ratingCount = recipe.getRatingCount()
         if (ratingCount > 0) {
             binding.ratingTextView.text = String.format("%.1f", avgRating)
             binding.ratingCountTextView.text = "($ratingCount)"
+            binding.ratingTextView.visibility = android.view.View.VISIBLE
+            binding.starSymbolTextView.visibility = android.view.View.VISIBLE
+            binding.ratingCountTextView.visibility = android.view.View.VISIBLE
         } else {
-            binding.ratingTextView.text = "0.0"
-            binding.ratingCountTextView.text = "(0)"
+            binding.ratingTextView.visibility = android.view.View.GONE
+            binding.starSymbolTextView.visibility = android.view.View.GONE
+            binding.ratingCountTextView.visibility = android.view.View.GONE
         }
 
-        // Display difficulty rating (your score)
-        if (recipe.difficultyRating != null && recipe.difficultyRating > 0) {
-            val stars = "★".repeat(recipe.difficultyRating) + "☆".repeat(5 - recipe.difficultyRating)
-            binding.difficultyRatingTextView.text = "Your: $stars"
-            binding.difficultySeparator.visibility = android.view.View.VISIBLE
+        // Display difficulty label (always shown if set)
+        val difficultyLabel = recipe.difficulty
+        if (!difficultyLabel.isNullOrBlank()) {
+            binding.difficultyRatingTextView.text = difficultyLabel
+            binding.difficultySeparator.visibility =
+                if (ratingCount > 0) android.view.View.VISIBLE else android.view.View.GONE
             binding.difficultyRatingTextView.visibility = android.view.View.VISIBLE
         } else {
             binding.difficultySeparator.visibility = android.view.View.GONE
@@ -67,8 +72,8 @@ class RecipeRowViewHolder(
         }
 
         val timeText = recipe.time?.let { "$it min" } ?: ""
-        val difficultyText = recipe.difficulty ?: ""
-        binding.metaTextView.text = listOf(timeText, difficultyText).filter { it.isNotEmpty() }.joinToString(" • ")
+        binding.metaTextView.text = timeText
+        binding.metaTextView2.text = recipe.publisher ?: ""
 
         updateFavoriteIcon(recipe.isFavorite)
 

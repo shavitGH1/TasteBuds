@@ -4,134 +4,176 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="false">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="#FFFDF8F0">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/image_view"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_marginEnd="16dp"
-            android:scaleType="centerCrop"
-            android:background="#E0E0E0"
-            android:contentDescription="@string/recipe_image_desc"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <!-- Image on top -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp">
 
-        <TextView
-            android:id="@+id/name_text_view"
-            style="@style/TextAppearance.TasteBuds.RecipeName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
-            android:text="@string/recipe_name"
-            android:textDirection="ltr"
-            app:layout_constraintEnd_toStartOf="@+id/options_button"
-            app:layout_constraintStart_toEndOf="@+id/image_view"
-            app:layout_constraintTop_toTopOf="parent" />
+            <ImageView
+                android:id="@+id/image_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#F5E6D3"
+                android:contentDescription="@string/recipe_image_desc" />
 
-        <!-- Star Rating Display -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/image_bottom_gradient" />
+
+            <!-- Favorite button top-right -->
+            <ImageView
+                android:id="@+id/favorite_image"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:padding="4dp"
+                android:background="#88FFFFFF"
+                android:contentDescription="@string/favorite"
+                app:srcCompat="@drawable/ic_favorite_border" />
+
+        </FrameLayout>
+
+        <!-- Content area -->
         <LinearLayout
-            android:id="@+id/rating_layout"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintStart_toEndOf="@+id/image_view"
-            app:layout_constraintEnd_toStartOf="@+id/options_button"
-            app:layout_constraintTop_toBottomOf="@+id/name_text_view">
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="4dp">
 
+            <!-- Recipe name -->
             <TextView
-                android:id="@+id/rating_text_view"
-                android:layout_width="wrap_content"
+                android:id="@+id/name_text_view"
+                style="@style/TextAppearance.TasteBuds.RecipeName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0.0"
-                android:textSize="12sp"
+                android:textSize="15sp"
+                android:textColor="#3E2723"
                 android:textStyle="bold"
-                android:textColor="#FF6B35" />
+                android:maxLines="2"
+                android:ellipsize="end" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Rating + Difficulty row, right under the name -->
+            <LinearLayout
+                android:id="@+id/rating_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" ★"
-                android:textSize="12sp"
-                android:textColor="#FFD700"
-                android:layout_marginStart="2dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
 
-            <TextView
-                android:id="@+id/rating_count_text_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="(0)"
-                android:textSize="10sp"
-                android:textColor="#999999"
-                android:layout_marginStart="4dp" />
+                <TextView
+                    android:id="@+id/rating_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF6B35" />
 
-            <!-- Difficulty Rating Separator -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" • "
-                android:textSize="12sp"
-                android:textColor="#999999"
-                android:layout_marginStart="4dp"
-                android:id="@+id/difficulty_separator" />
+                <TextView
+                    android:id="@+id/star_symbol_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" ★"
+                    android:textSize="12sp"
+                    android:textColor="#FFD700"
+                    android:layout_marginStart="1dp" />
 
-            <!-- Difficulty Rating Display -->
+                <TextView
+                    android:id="@+id/rating_count_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:textColor="#999999"
+                    android:layout_marginStart="3dp" />
+
+                <TextView
+                    android:id="@+id/difficulty_separator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • "
+                    android:textSize="12sp"
+                    android:textColor="#CCBBAA"
+                    android:layout_marginStart="2dp" />
+
+                <TextView
+                    android:id="@+id/difficulty_rating_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="#A0522D"
+                    android:textStyle="italic" />
+
+            </LinearLayout>
+
+            <!-- Time meta line -->
             <TextView
-                android:id="@+id/difficulty_rating_text_view"
-                android:layout_width="wrap_content"
+                android:id="@+id/meta_text_view"
+                style="@style/TextAppearance.TasteBuds.Meta"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Your: ★★★☆☆"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="4dp"
                 android:textSize="11sp"
-                android:textColor="#666666" />
+                android:textColor="#B0B0B0" />
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/options_button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="4dp"
-            android:contentDescription="@string/recipe_options"
-            android:src="@drawable/ic_more_vert"
-            app:tint="#666666"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:layout_constraintEnd_toStartOf="@+id/favorite_image"
-            app:layout_constraintTop_toTopOf="parent" />
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:background="#F0E0D0" />
 
-        <TextView
-            android:id="@+id/meta_text_view"
-            style="@style/TextAppearance.TasteBuds.Meta"
-            android:layout_width="0dp"
+        <!-- Bottom row: publisher + options -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/default_time"
-            android:textDirection="ltr"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/options_button"
-            app:layout_constraintStart_toEndOf="@+id/image_view"
-            app:layout_constraintTop_toBottomOf="@+id/rating_layout" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="8dp">
 
-        <ImageView
-            android:id="@+id/favorite_image"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:contentDescription="@string/favorite"
-            app:tint="#CC0000"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_favorite_border" />
+            <TextView
+                android:id="@+id/meta_text_view2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="11sp"
+                android:textColor="#B0B0B0"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageView
+                android:id="@+id/options_button"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:padding="2dp"
+                android:contentDescription="@string/recipe_options"
+                android:src="@drawable/ic_more_vert"
+                app:tint="#A0522D"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

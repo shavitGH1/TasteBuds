@@ -30,8 +30,8 @@ class AddRecipeFragment : Fragment() {
     private var editingRecipeId: String? = null
     private var existingRecipe: Recipe? = null
 
-    // Difficulty rating (1-5 stars)
-    private var difficultyRating: Int = 0
+    // Difficulty level selection
+    private var selectedDifficulty: String = "Medium"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -68,8 +68,8 @@ class AddRecipeFragment : Fragment() {
             binding?.importFromWebButton?.visibility = View.GONE
         }
 
-        // Setup difficulty rating stars
-        setupDifficultyStars()
+        // Setup difficulty buttons
+        setupDifficultyButtons()
 
         binding?.addStepButton?.setOnClickListener {
             addStepEditText("")
@@ -157,7 +157,7 @@ class AddRecipeFragment : Fragment() {
             return
         }
 
-        val difficulty = "Medium"
+        val difficulty = selectedDifficulty
         val dietRestrictions = listOf<String>()
 
         // Use existing recipe ID in edit mode, or create new one
@@ -194,7 +194,7 @@ class AddRecipeFragment : Fragment() {
             difficulty = difficulty,
             dietRestrictions = dietRestrictions,
             description = descriptionValue,
-            difficultyRating = if (difficultyRating > 0) difficultyRating else null,
+            difficultyRating = if (isEditMode && existingRecipe != null) existingRecipe!!.difficultyRating else null,
             userRatings = if (isEditMode && existingRecipe != null) existingRecipe!!.userRatings else mapOf()
         )
 
@@ -214,39 +214,43 @@ class AddRecipeFragment : Fragment() {
                 url.startsWith("https://", ignoreCase = true))
     }
 
-    private fun setupDifficultyStars() {
-        val stars = listOf(
-            binding?.difficultyStar1,
-            binding?.difficultyStar2,
-            binding?.difficultyStar3,
-            binding?.difficultyStar4,
-            binding?.difficultyStar5
-        )
+    private fun setupDifficultyButtons() {
+        updateDifficultyButtons()
 
-        stars.forEachIndexed { index, star ->
-            star?.setOnClickListener {
-                difficultyRating = index + 1
-                updateDifficultyStars()
-            }
+        binding?.difficultyEasyButton?.setOnClickListener {
+            selectedDifficulty = "Easy"
+            updateDifficultyButtons()
+        }
+        binding?.difficultyMediumButton?.setOnClickListener {
+            selectedDifficulty = "Medium"
+            updateDifficultyButtons()
+        }
+        binding?.difficultyHardButton?.setOnClickListener {
+            selectedDifficulty = "Hard"
+            updateDifficultyButtons()
         }
     }
 
-    private fun updateDifficultyStars() {
-        val stars = listOf(
-            binding?.difficultyStar1,
-            binding?.difficultyStar2,
-            binding?.difficultyStar3,
-            binding?.difficultyStar4,
-            binding?.difficultyStar5
+    private fun updateDifficultyButtons() {
+        val selectedColor = requireContext().getColor(android.R.color.holo_green_dark)
+        val defaultColor = requireContext().getColor(android.R.color.darker_gray)
+
+        binding?.difficultyEasyButton?.setTextColor(
+            if (selectedDifficulty == "Easy") selectedColor else defaultColor
+        )
+        binding?.difficultyMediumButton?.setTextColor(
+            if (selectedDifficulty == "Medium") selectedColor else defaultColor
+        )
+        binding?.difficultyHardButton?.setTextColor(
+            if (selectedDifficulty == "Hard") selectedColor else defaultColor
         )
 
-        stars.forEachIndexed { index, star ->
-            if (index < difficultyRating) {
-                star?.setImageResource(android.R.drawable.btn_star_big_on)
-            } else {
-                star?.setImageResource(android.R.drawable.btn_star_big_off)
-            }
-        }
+        // Bold the selected one
+        val bold = android.graphics.Typeface.BOLD
+        val normal = android.graphics.Typeface.NORMAL
+        binding?.difficultyEasyButton?.setTypeface(null, if (selectedDifficulty == "Easy") bold else normal)
+        binding?.difficultyMediumButton?.setTypeface(null, if (selectedDifficulty == "Medium") bold else normal)
+        binding?.difficultyHardButton?.setTypeface(null, if (selectedDifficulty == "Hard") bold else normal)
     }
 
     private fun loadImagePreview(url: String) {
@@ -347,11 +351,12 @@ class AddRecipeFragment : Fragment() {
         val time = args.getInt("time", 30)
         binding?.preparationTimeEditText?.setText(time.toString())
 
-        // Load difficulty rating
-        val rating = args.getInt("difficultyRating", 0)
-        if (rating > 0) {
-            difficultyRating = rating
-            updateDifficultyStars()
+        // Load difficulty level
+        args.getString("difficulty")?.let { diff ->
+            if (diff in listOf("Easy", "Medium", "Hard")) {
+                selectedDifficulty = diff
+                updateDifficultyButtons()
+            }
         }
 
         // Load image URL

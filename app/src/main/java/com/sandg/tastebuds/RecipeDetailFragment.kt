@@ -127,13 +127,8 @@ class RecipeDetailFragment : Fragment() {
         val timeText = r.time?.let { "$it minutes" } ?: "Not specified"
         binding?.timeTextView?.text = timeText
 
-        // Show difficulty rating as stars if available
-        val difficultyText = if (r.difficultyRating != null) {
-            val stars = "\u2605".repeat(r.difficultyRating) + "\u2606".repeat(5 - r.difficultyRating)
-            "$stars (${r.difficultyRating}/5)"
-        } else {
-            r.difficulty ?: "Not specified"
-        }
+        // Show difficulty level (Easy / Medium / Hard)
+        val difficultyText = r.difficulty?.takeIf { it.isNotBlank() } ?: "Not specified"
         binding?.difficultyTextView?.text = difficultyText
 
         binding?.descriptionTextView?.text = r.description ?: "No description available"

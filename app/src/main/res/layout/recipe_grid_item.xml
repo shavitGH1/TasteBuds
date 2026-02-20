@@ -4,95 +4,106 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="#FFFDF8F0">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/ivImage"
+        <!-- Recipe image with rounded top corners overlay -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:scaleType="centerCrop"
-            android:background="#E0E0E0"
-            android:contentDescription="@string/recipe_image_desc" />
+            android:layout_height="150dp">
 
-        <TextView
-            android:id="@+id/tvName"
-            style="@style/TextAppearance.TasteBuds.RecipeName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:paddingBottom="4dp"
-            android:textSize="14sp" />
+            <ImageView
+                android:id="@+id/ivImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#F5E6D3"
+                android:contentDescription="@string/recipe_image_desc" />
 
-        <!-- Star Rating Display -->
+            <!-- Gradient overlay at bottom of image for readability -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/image_bottom_gradient" />
+
+        </FrameLayout>
+
+        <!-- Content area -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="4dp"
-            android:gravity="start">
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="6dp">
 
             <TextView
-                android:id="@+id/tvRating"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvName"
+                style="@style/TextAppearance.TasteBuds.RecipeName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0.0"
-                android:textSize="12sp"
+                android:textSize="15sp"
+                android:textColor="#3E2723"
                 android:textStyle="bold"
-                android:textColor="#FF6B35" />
+                android:maxLines="2"
+                android:ellipsize="end" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvMeta"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" ★"
-                android:textSize="12sp"
-                android:textColor="#FFD700"
-                android:layout_marginStart="2dp" />
-
-            <TextView
-                android:id="@+id/tvRatingCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="(0)"
-                android:textSize="10sp"
-                android:textColor="#999999"
-                android:layout_marginStart="4dp" />
+                android:layout_marginTop="3dp"
+                android:textSize="11sp"
+                android:textColor="#A0522D" />
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvPublisher"
-            style="@style/TextAppearance.TasteBuds.Meta"
+        <!-- Divider -->
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:paddingBottom="8dp"
-            android:textSize="12sp" />
+            android:layout_height="1dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:background="#F0E0D0" />
 
+        <!-- Bottom row: publisher + action buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
             android:paddingEnd="8dp"
+            android:paddingTop="6dp"
             android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvPublisher"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="11sp"
+                android:textColor="#B0B0B0"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <ImageView
                 android:id="@+id/optionsButton"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="6dp"
                 android:padding="2dp"
                 android:contentDescription="@string/recipe_options"
                 android:src="@drawable/ic_more_vert"
-                app:tint="#666666"
+                app:tint="#A0522D"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageView

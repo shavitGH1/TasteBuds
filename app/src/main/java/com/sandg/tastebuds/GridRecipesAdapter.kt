@@ -34,26 +34,18 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
     inner class GridViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         private val ivImage = view.findViewById<ImageView>(R.id.ivImage)
         private val tvName = view.findViewById<TextView>(R.id.tvName)
+        private val tvMeta = view.findViewById<TextView>(R.id.tvMeta)
         private val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
-        private val tvRating = view.findViewById<TextView>(R.id.tvRating)
-        private val tvRatingCount = view.findViewById<TextView>(R.id.tvRatingCount)
         private val fav = view.findViewById<ImageView>(R.id.favoriteImage)
         private val optionsBtn = view.findViewById<ImageView>(R.id.optionsButton)
 
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
+            val timeText = recipe.time?.let { "$it min" } ?: ""
+            val diffText = recipe.difficulty ?: ""
+            tvMeta.text = listOf(timeText, diffText).filter { it.isNotEmpty() }.joinToString(" • ")
             tvPublisher.text = recipe.publisher ?: ""
 
-            // Display rating
-            val avgRating = recipe.getAverageRating()
-            val ratingCount = recipe.getRatingCount()
-            if (ratingCount > 0) {
-                tvRating.text = String.format("%.1f", avgRating)
-                tvRatingCount.text = "($ratingCount)"
-            } else {
-                tvRating.text = "0.0"
-                tvRatingCount.text = "(0)"
-            }
 
             if (!recipe.imageUrlString.isNullOrEmpty()) {
                 Picasso.get().load(recipe.imageUrlString).into(ivImage)
