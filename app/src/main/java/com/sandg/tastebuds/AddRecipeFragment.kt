@@ -63,11 +63,9 @@ class AddRecipeFragment : Fragment() {
         binding?.importFromWebButton?.setOnClickListener {
             view?.findNavController()?.navigate(R.id.action_global_mealSearchFragment)
         }
-        // Hide import button in edit mode
+        // Hide import card entirely in edit mode
         if (isEditMode) {
             binding?.importFromWebButton?.visibility = View.GONE
-            // Also hide the parent card
-            (binding?.importFromWebButton?.parent?.parent as? View)?.visibility = View.GONE
         }
 
         // Setup difficulty rating stars

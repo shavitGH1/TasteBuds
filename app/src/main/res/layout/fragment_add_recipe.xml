@@ -27,38 +27,26 @@
 
             <!-- Import from Web Button -->
             <androidx.cardview.widget.CardView
+                android:id="@+id/import_from_web_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="3dp"
-                app:cardBackgroundColor="#E8F5E9">
+                app:cardBackgroundColor="#E8F5E9"
+                android:clickable="true"
+                android:focusable="true">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="14dp"
-                    android:gravity="center_vertical">
+                    android:padding="16dp"
+                    android:text="🌍 Import a recipe from the web"
+                    android:textSize="15sp"
+                    android:textColor="#2E7D32"
+                    android:textStyle="bold"
+                    android:gravity="center" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="🌍 Import a recipe from the web"
-                        android:textSize="15sp"
-                        android:textColor="#2E7D32" />
-
-                    <Button
-                        android:id="@+id/import_from_web_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="Search"
-                        android:textSize="13sp"
-                        android:textAllCaps="false"
-                        style="@style/Widget.Material3.Button.TonalButton" />
-
-                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Recipe Name Card -->
