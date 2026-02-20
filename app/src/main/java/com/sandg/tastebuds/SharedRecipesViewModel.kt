@@ -25,25 +25,38 @@ class SharedRecipesViewModel : ViewModel() {
     private var lastAuthUid: String? = FirebaseAuth.getInstance().currentUser?.uid
     private var favListener: ListenerRegistration? = null
 
-    // Auth state listener will trigger reload only when a user signs in or the UID changes.
-    // We deliberately avoid reloading on sign-out to prevent clearing optimistic/local favorites from memory.
+    // Auth state listener — re-fetch favorites whenever a user is present, even if UID unchanged
+    // (covers sign-out + sign back in with same account)
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
         val uid = auth.currentUser?.uid
-        if (uid == lastAuthUid) return@AuthStateListener
-        // unregister previous listener if any
-        if (lastAuthUid != null) {
+        // If signing out, just clear the listener; keep in-memory favorites intact
+        if (uid == null) {
+            if (lastAuthUid != null) {
+                try { favListener?.remove() } catch (_: Exception) { }
+                favListener = null
+            }
+            lastAuthUid = null
+            return@AuthStateListener
+        }
+        // A user is signed in — always re-fetch favorites to ensure they are restored
+        val isNewUser = uid != lastAuthUid
+        if (isNewUser && lastAuthUid != null) {
             try { favListener?.remove() } catch (_: Exception) { }
             favListener = null
         }
         lastAuthUid = uid
-        if (!uid.isNullOrEmpty()) {
-            // register a realtime listener for this user's favorites
-            registerFavoritesListener(uid)
-            // user signed in or changed user -> fetch remote favorites into local DB, apply them, then reload
-            fetchAndApplyRemoteFavorites(uid) {
-                // After remote favorites fetched into local DB, reload and re-apply
-                reloadAll { applyFavoritesForUser(uid) }
-            }
+        if (favListener == null) registerFavoritesListener(uid)
+        // Always re-fetch remote favorites on sign-in so they survive reconnects
+        fetchAndApplyRemoteFavorites(uid) {
+            reloadAll { applyFavoritesForUser(uid) }
+        }
+    }
+
+    /** Call this when the app resumes to re-sync favorites for the current user. */
+    fun syncFavoritesForCurrentUser() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        fetchAndApplyRemoteFavorites(uid) {
+            reloadAll { applyFavoritesForUser(uid) }
         }
     }
 
@@ -68,72 +81,77 @@ class SharedRecipesViewModel : ViewModel() {
     fun reloadAll(onComplete: (() -> Unit)? = null) {
         Thread {
             try {
-                val local = try {
-                    AppLocalDB.db.recipeDao.getAllRecipes()
-                } catch (e: Exception) {
-                    emptyList<Recipe>()
+                val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+
+                // Step 1: If user is signed in, pull remote favorites into local DB BEFORE merging.
+                // This ensures favorites survive a full disconnect/reinstall.
+                if (!currentUid.isNullOrEmpty()) {
+                    try {
+                        val latch = java.util.concurrent.CountDownLatch(1)
+                        fStore.collection("users").document(currentUid).collection("favorites")
+                            .get()
+                            .addOnSuccessListener { snapshot ->
+                                Thread {
+                                    try {
+                                        snapshot.documents.forEach { doc ->
+                                            try {
+                                                AppLocalDB.db.favoriteDao.upsert(
+                                                    com.sandg.tastebuds.models.Favorite(recipeId = doc.id, userId = currentUid, isFavorite = true)
+                                                )
+                                            } catch (_: Exception) {}
+                                        }
+                                    } finally {
+                                        latch.countDown()
+                                    }
+                                }.start()
+                            }
+                            .addOnFailureListener { latch.countDown() }
+                        latch.await(5, java.util.concurrent.TimeUnit.SECONDS)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "reloadAll: pre-fetch remote favorites failed", e)
+                    }
                 }
 
-                Log.d(TAG, "reloadAll: local count=${local.size} ids=${local.map { it.id }}")
+                val local = try { AppLocalDB.db.recipeDao.getAllRecipes() } catch (_: Exception) { emptyList<Recipe>() }
 
-                // Load favorites for current user
-                val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+                Log.d(TAG, "reloadAll: local count=${local.size}")
+
                 val favoritesForUser = if (!currentUid.isNullOrEmpty()) {
-                    try {
-                        AppLocalDB.db.favoriteDao.getFavoritesForUser(currentUid).map { it.recipeId to it.isFavorite }.toMap()
-                    } catch (e: Exception) {
-                        emptyMap<String, Boolean>()
-                    }
+                    try { AppLocalDB.db.favoriteDao.getFavoritesForUser(currentUid).associate { it.recipeId to it.isFavorite } }
+                    catch (_: Exception) { emptyMap<String, Boolean>() }
                 } else emptyMap()
 
-                // Grab any in-memory optimistic favorite flags so we don't overwrite them
                 val inMemoryFavs = try { _recipes.value?.associate { it.id to it.isFavorite } ?: emptyMap() } catch (_: Exception) { emptyMap() }
 
-                // Apply user-specific favorites to local list, preferring in-memory optimistic flags
                 val localWithFavorites = local.map { r ->
-                    val fav = inMemoryFavs[r.id] ?: favoritesForUser[r.id] ?: r.isFavorite
-                    r.copy(isFavorite = fav)
+                    r.copy(isFavorite = inMemoryFavs[r.id] ?: favoritesForUser[r.id] ?: r.isFavorite)
                 }
 
-                // Only post local data immediately if we don't already have in-memory items (avoid overwriting optimistic UI)
                 if ((_recipes.value == null || _recipes.value!!.isEmpty()) && localWithFavorites.isNotEmpty()) {
                     _recipes.postValue(localWithFavorites)
                 }
 
                 Model.shared.getAllRemoteRecipes { remoteList ->
-                    Log.d(TAG, "reloadAll: remote count=${remoteList.size} ids=${remoteList.map { it.id }}")
+                    Log.d(TAG, "reloadAll: remote count=${remoteList.size}")
                     try {
-                        // Re-read favorites for current user in case they changed since we loaded `local` above
-                        val freshFavoritesForUser = if (!currentUid.isNullOrEmpty()) {
-                            try {
-                                AppLocalDB.db.favoriteDao.getFavoritesForUser(currentUid).map { it.recipeId to it.isFavorite }.toMap()
-                            } catch (e: Exception) {
-                                emptyMap<String, Boolean>()
-                            }
+                        // Re-read favorites (now guaranteed to include remote ones fetched above)
+                        val freshFavs = if (!currentUid.isNullOrEmpty()) {
+                            try { AppLocalDB.db.favoriteDao.getFavoritesForUser(currentUid).associate { it.recipeId to it.isFavorite } }
+                            catch (_: Exception) { emptyMap<String, Boolean>() }
                         } else emptyMap()
 
-                        // Grab any in-memory optimistic favorite flags from the live data so we don't overwrite recent toggles
-                        val inMemoryFavs = try {
-                            _recipes.value?.associate { it.id to it.isFavorite } ?: emptyMap()
-                        } catch (e: Exception) { emptyMap<String, Boolean>() }
+                        val latestInMemory = try { _recipes.value?.associate { it.id to it.isFavorite } ?: emptyMap() } catch (_: Exception) { emptyMap() }
 
                         val map = mutableMapOf<String, Recipe>()
-                        // start with remote but apply per-user and in-memory favorites to remote-only items
                         for (r in remoteList) {
-                            val favForRemote = inMemoryFavs[r.id] ?: freshFavoritesForUser[r.id] ?: favoritesForUser[r.id] ?: r.isFavorite
-                            map[r.id] = r.copy(isFavorite = favForRemote)
+                            val fav = latestInMemory[r.id] ?: freshFavs[r.id] ?: favoritesForUser[r.id] ?: r.isFavorite
+                            map[r.id] = r.copy(isFavorite = fav)
                         }
-                        // merge local, preserving local data and per-user favorites
                         for (l in local) {
                             val existing = map[l.id]
+                            val fav = latestInMemory[l.id] ?: freshFavs[l.id] ?: favoritesForUser[l.id] ?: l.isFavorite
                             if (existing != null) {
-                                // keep server fields but apply user favorite with precedence:
-                                // 1) in-memory optimistic favorite (user just toggled)
-                                // 2) freshly read per-user favorites from DB
-                                // 3) earlier favorites mapping loaded from DB
-                                // 4) fallback to local recipe's flag
-                                val fav = inMemoryFavs[l.id] ?: freshFavoritesForUser[l.id] ?: favoritesForUser[l.id] ?: l.isFavorite
-                                val merged = existing.copy(
+                                map[l.id] = existing.copy(
                                     isFavorite = fav,
                                     imageUrlString = existing.imageUrlString ?: l.imageUrlString,
                                     publisher = existing.publisher ?: l.publisher,
@@ -145,34 +163,20 @@ class SharedRecipesViewModel : ViewModel() {
                                     dietRestrictions = if (existing.dietRestrictions.isNotEmpty()) existing.dietRestrictions else l.dietRestrictions,
                                     description = existing.description ?: l.description
                                 )
-                                map[l.id] = merged
                             } else {
-                                // use local, but apply favorites precedence similar to above
-                                val fav = inMemoryFavs[l.id] ?: freshFavoritesForUser[l.id] ?: favoritesForUser[l.id] ?: l.isFavorite
                                 map[l.id] = l.copy(isFavorite = fav)
                             }
                         }
-                        val merged = map.values.toList()
-                        Log.d(TAG, "reloadAll: merged count=${merged.size} ids=${merged.map { it.id }}")
-                        _recipes.postValue(merged)
+                        _recipes.postValue(map.values.toList())
                     } catch (e: Exception) {
                         Log.e(TAG, "reloadAll: merge error", e)
-                        // On error, try to preserve optimistic in-memory favorites and freshly read per-user favorites
                         val freshFavs = if (!currentUid.isNullOrEmpty()) {
-                            try {
-                                AppLocalDB.db.favoriteDao.getFavoritesForUser(currentUid).map { it.recipeId to it.isFavorite }.toMap()
-                            } catch (_: Exception) { emptyMap<String, Boolean>() }
+                            try { AppLocalDB.db.favoriteDao.getFavoritesForUser(currentUid).associate { it.recipeId to it.isFavorite } }
+                            catch (_: Exception) { emptyMap<String, Boolean>() }
                         } else emptyMap()
-
-                        val inMemoryFavsFallback = try { _recipes.value?.associate { it.id to it.isFavorite } ?: emptyMap() } catch (_: Exception) { emptyMap() }
-
-                        val remoteWithFavs = remoteList.map { r ->
-                            val fav = inMemoryFavsFallback[r.id] ?: freshFavs[r.id] ?: r.isFavorite
-                            r.copy(isFavorite = fav)
-                        }
-                        _recipes.postValue(remoteWithFavs)
-                     }
-
+                        val inMem = try { _recipes.value?.associate { it.id to it.isFavorite } ?: emptyMap() } catch (_: Exception) { emptyMap() }
+                        _recipes.postValue(remoteList.map { r -> r.copy(isFavorite = inMem[r.id] ?: freshFavs[r.id] ?: r.isFavorite) })
+                    }
                     onComplete?.invoke()
                 }
             } catch (e: Exception) {

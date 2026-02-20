@@ -58,12 +58,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh recipes when the activity becomes visible (merges local + remote)
         try {
             val vm = ViewModelProvider(this)[SharedRecipesViewModel::class.java]
-            vm.reloadAll()
+            // Re-sync remote favorites first, then reload — ensures likes survive disconnect/reconnect
+            vm.syncFavoritesForCurrentUser()
         } catch (_: Exception) {
-            // If ViewModel isn't available for some reason, ignore silently
         }
     }
 

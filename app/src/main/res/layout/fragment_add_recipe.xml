@@ -139,7 +139,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎯 Difficulty Level"
+                        android:text="Difficulty Level"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
@@ -149,36 +149,44 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_horizontal"
                         android:weightSum="3">
 
                         <Button
                             android:id="@+id/difficulty_easy_button"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="36dp"
                             android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:text="😊 Easy"
+                            android:layout_marginEnd="4dp"
+                            android:text="Easy"
                             android:textAllCaps="false"
+                            android:textSize="13sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
                             style="@style/Widget.Material3.Button.OutlinedButton" />
 
                         <Button
                             android:id="@+id/difficulty_medium_button"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="36dp"
                             android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:text="🔥 Medium"
+                            android:layout_marginEnd="4dp"
+                            android:text="Medium"
                             android:textAllCaps="false"
+                            android:textSize="13sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
                             style="@style/Widget.Material3.Button.OutlinedButton" />
 
                         <Button
                             android:id="@+id/difficulty_hard_button"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="36dp"
                             android:layout_weight="1"
-                            android:text="💀 Hard"
+                            android:text="Hard"
                             android:textAllCaps="false"
+                            android:textSize="13sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
                             style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     </LinearLayout>
