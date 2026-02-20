@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
     implementation(libs.picasso)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

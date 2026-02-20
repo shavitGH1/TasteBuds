@@ -50,4 +50,11 @@
     </fragment>
     <action android:id="@+id/action_global_addRecipeFragment" app:destination="@id/addRecipeFragment" />
     <action android:id="@+id/action_global_recipeDetailFragment" app:destination="@id/recipeDetailFragment" />
+
+    <fragment
+        android:id="@+id/mealSearchFragment"
+        android:name="com.sandg.tastebuds.MealSearchFragment"
+        android:label="Import Recipe"
+        tools:layout="@layout/fragment_meal_search" />
+    <action android:id="@+id/action_global_mealSearchFragment" app:destination="@id/mealSearchFragment" />
 </navigation>

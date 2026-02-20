@@ -39,11 +39,14 @@ class AddRecipeFragment : Fragment() {
     ): View? {
         binding = FragmentAddRecipeBinding.inflate(layoutInflater, container, false)
 
-        // Check if we're editing an existing recipe
+        // Check if we're editing an existing recipe or importing from web
         arguments?.let { args ->
             editingRecipeId = args.getString("recipeId")
             if (editingRecipeId != null) {
                 isEditMode = true
+                loadRecipeData(args)
+            } else if (args.getString("recipeName") != null) {
+                // Coming from MealDB web import - pre-fill form but not in edit mode
                 loadRecipeData(args)
             }
         }
@@ -55,6 +58,17 @@ class AddRecipeFragment : Fragment() {
     private fun setupView() {
 
         binding?.loadingIndicator?.visibility = View.GONE
+
+        // Import from Web button - navigate to MealSearchFragment
+        binding?.importFromWebButton?.setOnClickListener {
+            view?.findNavController()?.navigate(R.id.action_global_mealSearchFragment)
+        }
+        // Hide import button in edit mode
+        if (isEditMode) {
+            binding?.importFromWebButton?.visibility = View.GONE
+            // Also hide the parent card
+            (binding?.importFromWebButton?.parent?.parent as? View)?.visibility = View.GONE
+        }
 
         // Setup difficulty rating stars
         setupDifficultyStars()
