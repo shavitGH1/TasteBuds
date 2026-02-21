@@ -1,129 +1,51 @@
 package com.sandg.tastebuds.models
 
-import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import com.google.firebase.auth.FirebaseAuth
-import com.sandg.tastebuds.MyApplication
-import com.sandg.tastebuds.base.Completion
-import com.sandg.tastebuds.base.RecipeCompletion
-import com.sandg.tastebuds.base.RecipesCompletion
 import com.sandg.tastebuds.dao.AppLocalDB
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class Model private constructor() {
 
     private val firebaseModel = FirebaseModel()
-    private val firebaseAuth = FirebaseAuthModel()
 
     companion object {
         val shared = Model()
     }
 
-    fun getAllRecipes(completion: RecipesCompletion) {
-        // 1) Load local recipes immediately so UI shows saved items on startup
-        Thread {
-            try {
-                val local = AppLocalDB.db.recipeDao.getAllRecipes()
-                if (local.isNotEmpty()) {
-                    Handler(Looper.getMainLooper()).post { completion(local) }
-                }
-            } catch (e: Exception) {
-            }
-        }.start()
+    /** Returns cached recipes immediately; fetches remote and caches when signed in. */
+    suspend fun getAllRecipes(): List<Recipe> = withContext(Dispatchers.IO) {
+        val local: List<Recipe> = runCatching { AppLocalDB.db.recipeDao.getAllRecipes() }.getOrElse { emptyList() }
 
-        // 2) Determine auth strategy: prefer existing Firebase user, then stored credentials
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            // already signed in, fetch remote recipes
-            firebaseModel.getAllRecipes { remoteList ->
-                Thread {
-                    try {
-                        if (remoteList.isNotEmpty()) {
-                            AppLocalDB.db.recipeDao.insertRecipes(*remoteList.toTypedArray())
-                        }
-                    } catch (e: Exception) {
-                    }
-                }.start()
+        if (FirebaseAuth.getInstance().currentUser == null) return@withContext local
 
-                Handler(Looper.getMainLooper()).post { completion(remoteList) }
-            }
-            return
+        val remote: List<Recipe> = runCatching { firebaseModel.getAllRecipesSync() }.getOrElse { emptyList() }
+        if (remote.isNotEmpty()) {
+            runCatching { AppLocalDB.db.recipeDao.insertRecipes(*remote.toTypedArray()) }
         }
+        if (remote.isNotEmpty()) remote else local
+    }
 
-        // No active Firebase user — try stored credentials (option 3)
-        val prefs = MyApplication.appContext?.getSharedPreferences("auth", Context.MODE_PRIVATE)
-        val storedEmail = prefs?.getString("email", null)
-        val storedPassword = prefs?.getString("password", null)
+    suspend fun getAllRemoteRecipes(): List<Recipe> = withContext(Dispatchers.IO) {
+        runCatching { firebaseModel.getAllRecipesSync() }.getOrElse { emptyList() }
+    }
 
-        if (!storedEmail.isNullOrEmpty() && !storedPassword.isNullOrEmpty()) {
-            // Sign in with stored credentials, then fetch remote recipes
-            firebaseAuth.signIn(storedEmail, storedPassword) {
-                firebaseModel.getAllRecipes { remoteList ->
-                    Thread {
-                        try {
-                            if (remoteList.isNotEmpty()) {
-                                AppLocalDB.db.recipeDao.insertRecipes(*remoteList.toTypedArray())
-                            }
-                        } catch (e: Exception) {
-                        }
-                    }.start()
+    suspend fun addRecipe(recipe: Recipe): Unit = withContext(Dispatchers.IO) {
+        runCatching { AppLocalDB.db.recipeDao.insertRecipes(recipe) }
+        runCatching { firebaseModel.addRecipeSync(recipe) }
+    }
 
-                    Handler(Looper.getMainLooper()).post { completion(remoteList) }
-                }
-            }
-        } else {
-            // No stored credentials and not signed in — skip remote fetch (local-only)
-            // If you prefer automatic anonymous sign-in, we can implement that here.
+    suspend fun deleteRecipe(recipe: Recipe): Unit = withContext(Dispatchers.IO) {
+        runCatching { AppLocalDB.db.recipeDao.deleteRecipe(recipe) }
+        runCatching { firebaseModel.deleteRecipeSync(recipe) }
+    }
+
+    suspend fun getRecipeById(id: String): Recipe? = withContext(Dispatchers.IO) {
+        val local: Recipe? = runCatching { AppLocalDB.db.recipeDao.getRecipeById(id) }.getOrNull()
+        val remote: Recipe? = runCatching { firebaseModel.getRecipeByIdSync(id) }.getOrNull()
+        if (remote != null) {
+            runCatching { AppLocalDB.db.recipeDao.insertRecipes(remote) }
         }
-    }
-
-    fun addRecipe(recipe: Recipe, completion: Completion) {
-        // Insert locally on a background thread
-        Thread {
-            try {
-                AppLocalDB.db.recipeDao.insertRecipes(recipe)
-            } catch (e: Exception) {
-            }
-        }.start()
-
-        // Call completion on main thread so UI code in the caller can run safely
-        Handler(Looper.getMainLooper()).post { completion() }
-
-        // Fire off the remote write asynchronously; don't rely on this to dismiss UI
-        firebaseModel.addRecipe(recipe) { /* no-op: network result handled via logs */ }
-    }
-
-    fun deleteRecipe(recipe: Recipe) {
-        firebaseModel.deleteRecipe(recipe)
-    }
-
-    fun getRecipeById(id: String, completion: RecipeCompletion) {
-        Thread {
-            try {
-                val local = AppLocalDB.db.recipeDao.getRecipeById(id)
-                if (local != null) {
-                    completion(local)
-                }
-            } catch (e: Exception) {
-            }
-
-            firebaseModel.getRecipeById(id) { remote ->
-                Thread {
-                    try {
-                        AppLocalDB.db.recipeDao.insertRecipes(remote)
-                    } catch (e: Exception) {
-                    }
-                }.start()
-
-                completion(remote)
-            }
-        }.start()
-    }
-
-    // Expose a direct remote fetch of all recipes (no local-first logic)
-    fun getAllRemoteRecipes(completion: RecipesCompletion) {
-        firebaseModel.getAllRemoteRecipes { list ->
-            completion(list)
-        }
+        remote ?: local
     }
 }

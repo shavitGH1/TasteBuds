@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
 
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.picasso)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)

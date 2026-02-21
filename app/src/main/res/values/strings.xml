@@ -70,4 +70,19 @@
     <!-- Recipe options -->
     <string name="recipe_options">Options</string>
 
+    <!-- Meal search -->
+    <string name="meal_search_empty">😕 No recipes found for &quot;%1$s&quot;\nTry another ingredient!</string>
+    <string name="meal_search_results">%1$d recipes found for &quot;%2$s&quot;</string>
+    <string name="meal_search_network_error">⚠️ Network error. Please check your connection.</string>
+
+    <!-- Recipe detail -->
+    <string name="label_not_specified">Not specified</string>
+    <string name="label_no_description">No description available</string>
+    <string name="label_recipe_not_found">Recipe not found</string>
+    <string name="label_loading">Loading…</string>
+    <string name="label_time_minutes">%1$d minutes</string>
+    <string name="label_ratings_count">(%1$d rating)</string>
+    <string name="label_ratings_count_plural">(%1$d ratings)</string>
+    <string name="step_number_format">%1$d. %2$s</string>
+
 </resources>

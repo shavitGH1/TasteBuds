@@ -1,238 +1,172 @@
 package com.sandg.tastebuds
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
-import com.google.gson.Gson
 import com.sandg.tastebuds.databinding.FragmentRecipeDetailBinding
-import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
 import com.squareup.picasso.Picasso
 
 class RecipeDetailFragment : Fragment() {
 
     private val sharedVm: SharedRecipesViewModel by activityViewModels()
+    private val viewModel: RecipeDetailViewModel by viewModels()
 
     private var binding: FragmentRecipeDetailBinding? = null
     private var recipeId: String? = null
-    private var recipe: Recipe? = null
-
-    private var lastLocalUpdateTime: Long = 0L
-    private var lastFetchStartTime: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            recipeId = it.getString("recipeId")
-        }
+        recipeId = arguments?.getString("recipeId")
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentRecipeDetailBinding.inflate(inflater, container, false)
-
         val id = recipeId
+
         if (id.isNullOrEmpty()) {
-            binding?.nameTextView?.text = "Recipe not found"
+            binding?.nameTextView?.text = getString(R.string.label_recipe_not_found)
             return binding?.root
         }
 
-        // First, try to get the recipe from SharedViewModel (includes favorite state)
-        val existingRecipe = sharedVm.recipes.value?.firstOrNull { it.id == id }
-        if (existingRecipe != null) {
-            recipe = existingRecipe
-            bindRecipe(existingRecipe)
-        } else {
-            // If not in ViewModel yet, show loading
-            binding?.nameTextView?.text = "Loading..."
-        }
+        setupEditButton()
+        observeRecipe()
 
-        // Observe shared viewmodel so detail updates when favorites change elsewhere
-        sharedVm.recipes.observe(viewLifecycleOwner) { list ->
-            val idLocal = recipeId
-            if (idLocal == null) return@observe
-            val updated = list.firstOrNull { it.id == idLocal }
-            if (updated != null) {
-                recipe = updated
-                bindRecipe(updated)
-            }
-        }
+        // Seed the detail VM from the shared list first (instant), then fetch fresh copy
+        val cached = sharedVm.recipes.value?.firstOrNull { it.id == id }
+        if (cached != null) viewModel.setRecipe(cached)
+        viewModel.loadRecipe(id)
 
-        // Also fetch from Model to ensure we have the latest data (in background)
-        lastFetchStartTime = System.currentTimeMillis()
-        Model.shared.getRecipeById(id) { r ->
-            activity?.runOnUiThread {
-                if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
-                recipe = r
-                bindRecipe(r)
-            }
-        }
+        return binding?.root
+    }
 
+    // ── Observers ─────────────────────────────────────────────────────────────
+
+    private fun observeRecipe() {
+        viewModel.recipe.observe(viewLifecycleOwner) { recipe ->
+            if (recipe != null) bindRecipe(recipe)
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
+            if (loading && viewModel.recipe.value == null) binding?.nameTextView?.text = getString(R.string.label_loading)
+        }
+    }
+
+    // ── Binding ───────────────────────────────────────────────────────────────
+
+    private fun bindRecipe(r: Recipe) {
+        binding?.nameTextView?.text = r.name
+        binding?.timeTextView?.text = r.time?.let { getString(R.string.label_time_minutes, it) } ?: getString(R.string.label_not_specified)
+        binding?.difficultyTextView?.text = r.difficulty?.takeIf { it.isNotBlank() } ?: getString(R.string.label_not_specified)
+        binding?.descriptionTextView?.text = r.description ?: getString(R.string.label_no_description)
+
+        loadImage(r.imageUrlString)
+        showEditButtonIfOwner(r)
+        setupRatingCard(r)
+        populateIngredients(r)
+        populateSteps(r)
+    }
+
+    private fun loadImage(url: String?) {
+        if (url.isNullOrEmpty()) { binding?.imageCard?.visibility = View.GONE; return }
+        binding?.imageView?.let { iv ->
+            Picasso.get().load(url).into(iv, object : com.squareup.picasso.Callback {
+                override fun onSuccess() { binding?.imageCard?.visibility = View.VISIBLE }
+                override fun onError(e: Exception?) { binding?.imageCard?.visibility = View.GONE }
+            })
+        }
+    }
+
+    private fun showEditButtonIfOwner(r: Recipe) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val isOwner = !uid.isNullOrEmpty() && uid == r.publisherId
+        binding?.editButton?.visibility = if (isOwner) View.VISIBLE else View.GONE
+    }
+
+    private fun setupEditButton() {
         binding?.editButton?.setOnClickListener {
-            recipe?.let { r ->
-                val bundle = Bundle().apply {
+            val r = viewModel.recipe.value ?: return@setOnClickListener
+            findNavController().navigate(
+                R.id.action_global_addRecipeFragment,
+                Bundle().apply {
                     putString("recipeId", r.id)
                     putString("recipeName", r.name)
                     putString("description", r.description)
                     putInt("time", r.time ?: 30)
                     putString("difficulty", r.difficulty)
-                    putInt("difficultyRating", r.difficultyRating ?: 0)
                     putString("imageUrl", r.imageUrlString)
                     putStringArrayList("steps", ArrayList(r.steps))
-                    // Ingredients need to be serialized
-                    val ingredientsJson = Gson().toJson(r.ingredients)
-                    putString("ingredientsJson", ingredientsJson)
+                    putString("ingredientsJson", com.google.gson.Gson().toJson(r.ingredients))
                 }
-                findNavController().navigate(R.id.action_global_addRecipeFragment, bundle)
-            }
+            )
         }
-
-        return binding?.root
     }
 
-    private fun bindRecipe(r: Recipe) {
-        binding?.nameTextView?.text = r.name
+    private fun setupRatingCard(r: Recipe) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val isOtherUser = !uid.isNullOrEmpty() && r.publisherId != uid
+        binding?.ratingCard?.visibility = if (isOtherUser) View.VISIBLE else View.GONE
+        if (!isOtherUser) return
 
-        val timeText = r.time?.let { "$it minutes" } ?: "Not specified"
-        binding?.timeTextView?.text = timeText
+        val avg = r.getAverageRating()
+        val count = r.getRatingCount()
+        binding?.averageRatingText?.text = String.format(java.util.Locale.getDefault(), "%.1f", avg)
+        binding?.ratingCountText?.text = if (count == 1)
+            getString(R.string.label_ratings_count, count)
+        else
+            getString(R.string.label_ratings_count_plural, count)
 
-        // Show difficulty level (Easy / Medium / Hard)
-        val difficultyText = r.difficulty?.takeIf { it.isNotBlank() } ?: "Not specified"
-        binding?.difficultyTextView?.text = difficultyText
-
-        binding?.descriptionTextView?.text = r.description ?: "No description available"
-
-
-        val currentEmail = FirebaseAuth.getInstance().currentUser?.email
-        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
-
-        // Setup user rating card (only for other people's recipes)
-        if (!currentUid.isNullOrEmpty() && r.publisherId != currentUid) {
-            binding?.ratingCard?.visibility = View.VISIBLE
-            setupUserRating(r, currentUid)
-        } else {
-            binding?.ratingCard?.visibility = View.GONE
+        val stars = listOf(binding?.userRatingStar1, binding?.userRatingStar2, binding?.userRatingStar3, binding?.userRatingStar4, binding?.userRatingStar5)
+        val userRating = r.userRatings[uid] ?: 0
+        updateStarUI(stars, userRating)
+        stars.forEachIndexed { index, star ->
+            star?.setOnClickListener { onStarClicked(r, uid!!, index + 1, stars) }
         }
+    }
 
-        // Load image only if URL is provided
-        if (!r.imageUrlString.isNullOrEmpty()) {
-            binding?.imageView?.let { imageView ->
-                Picasso.get()
-                    .load(r.imageUrlString)
-                    .into(imageView, object : com.squareup.picasso.Callback {
-                        override fun onSuccess() {
-                            binding?.imageCard?.visibility = View.VISIBLE
-                        }
-                        override fun onError(e: Exception?) {
-                            binding?.imageCard?.visibility = View.GONE
-                        }
-                    })
-            }
-        } else {
-            binding?.imageCard?.visibility = View.GONE
+    private fun onStarClicked(r: Recipe, uid: String, rating: Int, stars: List<ImageView?>) {
+        updateStarUI(stars, rating)
+        viewModel.saveRating(r, uid, rating)
+        showStyledToast("Rating saved!", android.R.drawable.ic_menu_save, true)
+    }
+
+    private fun updateStarUI(stars: List<ImageView?>, rating: Int) {
+        stars.forEachIndexed { i, star ->
+            star?.setImageResource(if (i < rating) android.R.drawable.btn_star_big_on else android.R.drawable.btn_star_big_off)
         }
+    }
 
-        // Show edit button only for recipe owner
-        if ((!currentEmail.isNullOrEmpty() && !r.publisher.isNullOrEmpty() && currentEmail == r.publisher) ||
-            (!currentUid.isNullOrEmpty() && !r.publisherId.isNullOrEmpty() && currentUid == r.publisherId)) {
-            binding?.editButton?.visibility = View.VISIBLE
-        } else {
-            binding?.editButton?.visibility = View.GONE
-        }
-
+    private fun populateIngredients(r: Recipe) {
         binding?.ingredientsContainer?.removeAllViews()
         r.ingredients.forEach { ing ->
-            val ctx = context ?: return
-            val tv = TextView(ctx)
+            val tv = TextView(context ?: return)
             val amt = ing.amount?.let { if (it == it.toInt().toDouble()) it.toInt().toString() else it.toString() } ?: ""
             val unit = ing.unit ?: ""
-            val text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} \u2014 $amt $unit".trim() else ing.name
-            tv.text = text
+            tv.text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} — $amt $unit".trim() else ing.name
             tv.setPadding(0, 6, 0, 6)
             binding?.ingredientsContainer?.addView(tv)
         }
+    }
 
+    private fun populateSteps(r: Recipe) {
         binding?.stepsContainer?.removeAllViews()
-        r.steps.forEachIndexed { idx, step ->
-            val ctx = context ?: return
-            val tv = TextView(ctx)
-            tv.text = "${idx + 1}. $step"
+        r.steps.forEachIndexed { i, step ->
+            val tv = TextView(context ?: return)
+            tv.text = getString(R.string.step_number_format, i + 1, step)
             tv.setPadding(0, 6, 0, 6)
             binding?.stepsContainer?.addView(tv)
         }
     }
 
-    private fun setupUserRating(r: Recipe, currentUid: String) {
-        // Display average rating
-        val avgRating = r.getAverageRating()
-        val ratingCount = r.getRatingCount()
-        binding?.averageRatingText?.text = String.format("%.1f", avgRating)
-        binding?.ratingCountText?.text = "($ratingCount ${if (ratingCount == 1) "rating" else "ratings"})"
-
-        // Get current user's rating
-        val userRating = r.userRatings[currentUid] ?: 0
-
-        // Setup star click listeners
-        val stars = listOf(
-            binding?.userRatingStar1,
-            binding?.userRatingStar2,
-            binding?.userRatingStar3,
-            binding?.userRatingStar4,
-            binding?.userRatingStar5
-        )
-
-        stars.forEachIndexed { index, star ->
-            // Set initial state
-            if (index < userRating) {
-                star?.setImageResource(android.R.drawable.btn_star_big_on)
-            } else {
-                star?.setImageResource(android.R.drawable.btn_star_big_off)
-            }
-
-            // Set click listener
-            star?.setOnClickListener {
-                val newRating = index + 1
-                saveUserRating(r, currentUid, newRating, stars)
-            }
-        }
-    }
-
-    private fun saveUserRating(r: Recipe, userId: String, rating: Int, stars: List<android.widget.ImageView?>) {
-        // Update stars visually
-        stars.forEachIndexed { index, star ->
-            if (index < rating) {
-                star?.setImageResource(android.R.drawable.btn_star_big_on)
-            } else {
-                star?.setImageResource(android.R.drawable.btn_star_big_off)
-            }
-        }
-
-        // Update recipe with new rating
-        val updatedRatings = r.userRatings.toMutableMap()
-        updatedRatings[userId] = rating
-
-        val updatedRecipe = r.copy(userRatings = updatedRatings)
-
-        // Save to Firebase
-        Model.shared.addRecipe(updatedRecipe) {
-            activity?.runOnUiThread {
-                // Update local recipe and display
-                recipe = updatedRecipe
-                val avgRating = updatedRecipe.getAverageRating()
-                val ratingCount = updatedRecipe.getRatingCount()
-                binding?.averageRatingText?.text = String.format("%.1f", avgRating)
-                binding?.ratingCountText?.text = "($ratingCount ${if (ratingCount == 1) "rating" else "ratings"})"
-
-                showStyledToast("Rating saved!", android.R.drawable.ic_menu_save, true)
-            }
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 }
