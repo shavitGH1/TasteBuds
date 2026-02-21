@@ -99,9 +99,10 @@ class HomeHostFragment : Fragment() {
 
                 val currentDestinationId = navController?.currentDestination?.id
 
-                // If we're on RecipeDetail or AddRecipe, save the tab and pop back first
+                // If we're on RecipeDetail, AddRecipe, or MealSearch, save the tab and pop back first
                 if (currentDestinationId == R.id.recipeDetailFragment ||
-                    currentDestinationId == R.id.addRecipeFragment) {
+                    currentDestinationId == R.id.addRecipeFragment ||
+                    currentDestinationId == R.id.mealSearchFragment) {
 
                     // Save the desired tab
                     when (item.itemId) {
