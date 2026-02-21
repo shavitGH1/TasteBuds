@@ -8,13 +8,77 @@
     android:background="@drawable/food_background_honey"
     tools:context=".MainActivity">
 
+    <!-- Custom toolbar — gives us full control over layout -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/header_background"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:contentInsetStart="0dp"
+        app:contentInsetEnd="0dp"
+        app:contentInsetStartWithNavigation="0dp">
+
+        <!-- ConstraintLayout fills the toolbar so we can pin the title to parent edges -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Nav (back) button — left side -->
+            <ImageButton
+                android:id="@+id/toolbarNavIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Navigate up"
+                android:src="@drawable/ic_arrow_back"
+                android:visibility="gone"
+                android:tint="@color/header_icon_color"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <!-- Title — always centered relative to the full toolbar/screen width -->
+            <TextView
+                android:id="@+id/toolbarTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/header_icon_color"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="Profile" />
+
+            <!-- Add (+) button — right side -->
+            <ImageButton
+                android:id="@+id/toolbarAddButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Add recipe"
+                android:src="@drawable/ic_baseline_add_24"
+                android:tint="@color/header_icon_color"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.appcompat.widget.Toolbar>
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/mainNavHost"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
@@ -37,3 +101,5 @@
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
