@@ -20,6 +20,40 @@ class RegistrationActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
+        // ── Auto-login logic ──────────────────────────────────────────────────
+        // 1) If Firebase already considers the user signed in, go straight to the app.
+        val existingUser = FirebaseAuth.getInstance().currentUser
+        if (existingUser != null) {
+            navigateToMainActivity()
+            return
+        }
+
+        // 2) If we have saved credentials, try a silent re-login.
+        val prefs = getSharedPreferences("auth", MODE_PRIVATE)
+        val savedEmail = prefs.getString("email", null)
+        val savedPassword = prefs.getString("password", null)
+
+        if (!savedEmail.isNullOrEmpty() && !savedPassword.isNullOrEmpty()) {
+            FirebaseAuth.getInstance()
+                .signInWithEmailAndPassword(savedEmail, savedPassword)
+                .addOnSuccessListener {
+                    // Successfully re-authenticated – go straight to main screen
+                    navigateToMainActivity()
+                }
+                .addOnFailureListener {
+                    // Credentials no longer valid – clear them and show the login form
+                    prefs.edit { clear() }
+                    showLoginForm()
+                }
+            // Don't inflate the UI yet; wait for the async result
+            return
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        showLoginForm()
+    }
+
+    private fun showLoginForm() {
         val binding = ActivityRegistrationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -107,7 +141,7 @@ class RegistrationActivity : AppCompatActivity() {
                                             btnNext.isEnabled = true
                                             return@createOrUpdateUserDocument
                                         }
-                                        saveCredentialsAndContinue(username, email, uid)
+                                        saveCredentialsAndContinue(username, email, uid, password)
                                     }
                                 }
                                 .addOnFailureListener { e ->
@@ -131,14 +165,14 @@ class RegistrationActivity : AppCompatActivity() {
                                     if (uid != null) {
                                         firebaseModel.createOrUpdateUserDocument(uid, username, email) { success, err ->
                                             if (success) {
-                                                saveCredentialsAndContinue(username, email, uid)
+                                                saveCredentialsAndContinue(username, email, uid, password)
                                             } else {
                                                 if (err != null) showExceptionDialog(err) else showErrorDialog("Failed to write user document after sign-in.")
                                                 btnNext.isEnabled = true
                                             }
                                         }
                                     } else {
-                                        saveCredentialsAndContinue(username, email, uid)
+                                        saveCredentialsAndContinue(username, email, uid, password)
                                     }
                                 }
                                 .addOnFailureListener { signInEx ->
@@ -175,14 +209,14 @@ class RegistrationActivity : AppCompatActivity() {
                             db.collection("users").document(uid).get()
                                 .addOnSuccessListener { doc ->
                                     val storedUsername = doc.getString("name") ?: email.substringBefore("@")
-                                    saveCredentialsAndContinue(storedUsername, email, uid)
+                                    saveCredentialsAndContinue(storedUsername, email, uid, password)
                                 }
                                 .addOnFailureListener {
                                     // If we can't get username, use email prefix
-                                    saveCredentialsAndContinue(email.substringBefore("@"), email, uid)
+                                    saveCredentialsAndContinue(email.substringBefore("@"), email, uid, password)
                                 }
                         } else {
-                            saveCredentialsAndContinue(email.substringBefore("@"), email, uid)
+                            saveCredentialsAndContinue(email.substringBefore("@"), email, uid, password)
                         }
                     }
                     .addOnFailureListener { signInEx ->
@@ -202,13 +236,14 @@ class RegistrationActivity : AppCompatActivity() {
         showStyledToast(msg, android.R.drawable.ic_dialog_info)
     }
 
-    private fun saveCredentialsAndContinue(username: String, email: String, uid: String?) {
+    private fun saveCredentialsAndContinue(username: String, email: String, uid: String?, password: String = "") {
         try {
             val prefs = getSharedPreferences("auth", MODE_PRIVATE)
             prefs.edit {
                 putString("name", username)
                 putString("email", email)
                 putString("uid", uid)
+                if (password.isNotEmpty()) putString("password", password)
             }
         } catch (_: Exception) {
         }
