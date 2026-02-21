@@ -13,12 +13,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import java.io.File
 import java.io.FileOutputStream
 
@@ -43,32 +45,37 @@ class ManageUserFragment : Fragment() {
         val ivAvatar = root.findViewById<ImageView>(R.id.ivAvatar)
         val tvName = root.findViewById<TextView>(R.id.tvName)
         val tvEmail = root.findViewById<TextView>(R.id.tvEmail)
-        val tvRecipeCount = root.findViewById<TextView>(R.id.tvRecipeCount)
         val btnEditPhoto = root.findViewById<Button>(R.id.btnEditPhoto)
+        val btnEditName = root.findViewById<ImageButton>(R.id.btnEditName)
         val btnChangePassword = root.findViewById<Button>(R.id.btnChangePassword)
         val btnSignOut = root.findViewById<Button>(R.id.btnSignOut)
 
-        // Set user info
-        val displayName = user?.displayName ?: user?.email?.substringBefore("@") ?: "User"
-        tvName.text = displayName
+        // Show display name — read from SharedPreferences first (set at login / last edit)
+        val authPrefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE)
+        val savedName = authPrefs.getString("name", null)?.takeIf { it.isNotBlank() }
+            ?: user?.displayName?.takeIf { it.isNotBlank() }
+        tvName.text = savedName ?: "Tap ✏ to set your name"
         tvEmail.text = user?.email ?: ""
+
+        // If no local name cached, fetch from Firestore and fill in
+        if (savedName == null && user != null) {
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users").document(user.uid).get()
+                .addOnSuccessListener { doc ->
+                    val remoteName = doc?.getString("name")?.takeIf { it.isNotBlank() }
+                    if (remoteName != null) {
+                        authPrefs.edit().putString("name", remoteName).apply()
+                        tvName.text = remoteName
+                    }
+                }
+        }
 
         // Load saved photo or show default icon
         loadProfilePhoto(ivAvatar, user?.uid)
 
-        // Load stats using SharedRecipesViewModel
-        try {
-            val sharedVm = androidx.lifecycle.ViewModelProvider(requireActivity())[SharedRecipesViewModel::class.java]
-            sharedVm.recipes.observe(viewLifecycleOwner) { recipes ->
-                val currentUid = user?.uid
-                val myRecipesCount = recipes.count { it.publisherId == currentUid }
-                tvRecipeCount.text = myRecipesCount.toString()
-            }
-        } catch (e: Exception) {
-            tvRecipeCount.text = "0"
-        }
-
         btnEditPhoto.setOnClickListener { showPhotoOptions() }
+
+        btnEditName.setOnClickListener { showEditNameDialog(tvName) }
 
         btnChangePassword.setOnClickListener { showChangePasswordDialog() }
 
@@ -204,6 +211,65 @@ class ManageUserFragment : Fragment() {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         startActivity(intent)
         activity?.finish()
+    }
+
+    private fun showEditNameDialog(tvName: TextView) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val authPrefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE)
+        val currentName = authPrefs.getString("name", null)?.takeIf { it.isNotBlank() }
+            ?: user.displayName ?: ""
+
+        val input = EditText(requireContext()).apply {
+            setText(currentName)
+            hint = "Your name"
+            setSingleLine()
+            setPadding(48, 32, 48, 32)
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Edit Name")
+            .setView(input)
+            .setPositiveButton("Save", null)
+            .setNegativeButton("Cancel", null)
+            .create()
+            .also { dialog ->
+                dialog.show()
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                    val newName = input.text.toString().trim()
+                    if (newName.isEmpty()) {
+                        input.error = "Name cannot be empty"
+                        return@setOnClickListener
+                    }
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+
+                    // 1. Save to SharedPreferences immediately
+                    authPrefs.edit().putString("name", newName).apply()
+
+                    // 2. Update Firestore users document
+                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users").document(user.uid)
+                        .update("name", newName)
+                        .addOnFailureListener {
+                            // If document doesn't exist yet, create it
+                            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                .collection("users").document(user.uid)
+                                .set(mapOf("userId" to user.uid, "name" to newName, "email" to (user.email ?: "")))
+                        }
+
+                    // 3. Update Firebase Auth displayName
+                    val profileUpdate = UserProfileChangeRequest.Builder()
+                        .setDisplayName(newName)
+                        .build()
+                    user.updateProfile(profileUpdate).addOnCompleteListener {
+                        activity?.runOnUiThread {
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = true
+                            tvName.text = newName
+                            showStyledToast("Name updated!", android.R.drawable.ic_menu_save, true)
+                            dialog.dismiss()
+                        }
+                    }
+                }
+            }
     }
 
     private fun showChangePasswordDialog() {
