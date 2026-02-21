@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         try {
             val vm = ViewModelProvider(this)[SharedRecipesViewModel::class.java]
-            vm.syncFavoritesForCurrentUser()
+            vm.reloadAll()
         } catch (_: Exception) {
         }
     }

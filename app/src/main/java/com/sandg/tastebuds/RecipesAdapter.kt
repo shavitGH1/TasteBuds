@@ -10,7 +10,6 @@ import com.sandg.tastebuds.models.Recipe
 
 interface OnItemClickListener {
     fun onRecipeItemClick(recipe: Recipe)
-    fun onToggleFavorite(recipe: Recipe)
     fun onRecipeOptions(recipe: Recipe, view: android.view.View)
 }
 

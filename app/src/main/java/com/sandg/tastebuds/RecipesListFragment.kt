@@ -38,12 +38,8 @@ class RecipesListFragment : Fragment() {
                 navigateToRecipeDetail(recipe)
             }
 
-            override fun onToggleFavorite(recipe: Recipe) {
-                sharedVm.toggleFavorite(recipe)
-            }
-
             override fun onRecipeOptions(recipe: Recipe, view: View) {
-                // Options menu not needed here, but required by interface
+                // Options menu not needed here
             }
         }
 

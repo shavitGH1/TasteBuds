@@ -10,7 +10,6 @@ data class Recipe(
     val id: String,
 
     val name: String,
-    var isFavorite: Boolean = false,
     val imageUrlString: String? = null,
 
     val publisher: String? = null,
@@ -39,7 +38,6 @@ data class Recipe(
         fun fromJson(json: Map<String, Any?>): Recipe {
             val id = json["id"] as? String ?: ""
             val name = json["name"] as? String ?: ""
-            val isFavorite = json["isFavorite"] as? Boolean ?: false
             val imageUrlString = json["imageUrlString"] as? String
 
             val publisher = json["publisher"] as? String
@@ -84,7 +82,6 @@ data class Recipe(
             return Recipe(
                 id = id,
                 name = name,
-                isFavorite = isFavorite,
                 imageUrlString = imageUrlString,
                 publisher = publisher,
                 publisherId = publisherId,
@@ -113,7 +110,6 @@ data class Recipe(
             "difficulty" to difficulty,
             "dietRestrictions" to dietRestrictions,
             "description" to description,
-            "isFavorite" to isFavorite,
             "difficultyRating" to difficultyRating,
             "userRatings" to userRatings
         )

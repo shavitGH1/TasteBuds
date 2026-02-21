@@ -44,7 +44,6 @@ class ManageUserFragment : Fragment() {
         val tvName = root.findViewById<TextView>(R.id.tvName)
         val tvEmail = root.findViewById<TextView>(R.id.tvEmail)
         val tvRecipeCount = root.findViewById<TextView>(R.id.tvRecipeCount)
-        val tvFavoriteCount = root.findViewById<TextView>(R.id.tvFavoriteCount)
         val btnEditPhoto = root.findViewById<Button>(R.id.btnEditPhoto)
         val btnChangePassword = root.findViewById<Button>(R.id.btnChangePassword)
         val btnSignOut = root.findViewById<Button>(R.id.btnSignOut)
@@ -62,19 +61,11 @@ class ManageUserFragment : Fragment() {
             val sharedVm = androidx.lifecycle.ViewModelProvider(requireActivity())[SharedRecipesViewModel::class.java]
             sharedVm.recipes.observe(viewLifecycleOwner) { recipes ->
                 val currentUid = user?.uid
-
-                // Count recipes created by user
                 val myRecipesCount = recipes.count { it.publisherId == currentUid }
                 tvRecipeCount.text = myRecipesCount.toString()
-
-                // Count favorited recipes
-                val favoritesCount = recipes.count { it.isFavorite }
-                tvFavoriteCount.text = favoritesCount.toString()
             }
         } catch (e: Exception) {
-            // If ViewModel not available, show 0
             tvRecipeCount.text = "0"
-            tvFavoriteCount.text = "0"
         }
 
         btnEditPhoto.setOnClickListener { showPhotoOptions() }

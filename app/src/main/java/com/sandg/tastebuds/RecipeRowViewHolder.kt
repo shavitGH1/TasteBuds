@@ -19,19 +19,7 @@ class RecipeRowViewHolder(
             }
         }
 
-        binding.favoriteImage.setOnClickListener {
-            recipe?.let { r ->
-                val toggled = r.copy(isFavorite = !r.isFavorite)
-
-                // Optimistic UI update
-                recipe = toggled
-                updateFavoriteIcon(toggled.isFavorite)
-                animateFavoriteToggle(toggled.isFavorite)
-
-                // Forward the action to the fragment/viewmodel with the desired state
-                listener?.onToggleFavorite(toggled)
-            }
-        }
+        binding.favoriteImage.visibility = android.view.View.GONE
 
         binding.optionsButton.setOnClickListener { view ->
             recipe?.let { r ->
@@ -73,8 +61,6 @@ class RecipeRowViewHolder(
         binding.metaTextView.text = timeText
         binding.metaTextView2.text = recipe.publisher ?: ""
 
-        updateFavoriteIcon(recipe.isFavorite)
-
         if (!recipe.imageUrlString.isNullOrEmpty()) {
             Picasso
                 .get()
@@ -83,37 +69,5 @@ class RecipeRowViewHolder(
         } else {
             binding.imageView.setImageDrawable(null)
         }
-    }
-
-    private fun updateFavoriteIcon(isFavorite: Boolean) {
-        if (isFavorite) {
-            binding.favoriteImage.setImageResource(R.drawable.ic_favorite_filled)
-            binding.favoriteImage.alpha = 1.0f
-        } else {
-            binding.favoriteImage.setImageResource(R.drawable.ic_favorite_border)
-            binding.favoriteImage.alpha = 0.9f
-        }
-    }
-
-    private fun animateFavoriteToggle(isFavorite: Boolean) {
-        val iv = binding.favoriteImage
-        iv.animate().cancel()
-
-        iv.setImageResource(if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
-
-        iv.scaleX = 0.8f
-        iv.scaleY = 0.8f
-        iv.animate()
-            .scaleX(1.2f)
-            .scaleY(1.2f)
-            .setDuration(140)
-            .withEndAction {
-                iv.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(140)
-                    .start()
-            }
-            .start()
     }
 }

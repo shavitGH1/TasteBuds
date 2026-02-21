@@ -1,9 +1,6 @@
 package com.sandg.tastebuds
 
-import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -74,28 +71,8 @@ class RecipeDetailFragment : Fragment() {
         Model.shared.getRecipeById(id) { r ->
             activity?.runOnUiThread {
                 if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
-                // Merge with favorite state from SharedViewModel
-                val currentRecipe = recipe
-                val mergedRecipe = if (currentRecipe != null) {
-                    r.copy(isFavorite = currentRecipe.isFavorite)
-                } else {
-                    r
-                }
-                recipe = mergedRecipe
-                bindRecipe(mergedRecipe)
-            }
-        }
-
-        binding?.favoriteFab?.setOnClickListener {
-            recipe?.let { r ->
-                val toggled = r.copy(isFavorite = !r.isFavorite)
-                lastLocalUpdateTime = System.currentTimeMillis()
-                recipe = toggled
-                updateFavoriteIcon(toggled.isFavorite)
-                animateFavoriteToggle(toggled.isFavorite)
-
-                // Use shared ViewModel to toggle per-user favorite (avoids writing global favorite to server)
-                sharedVm.toggleFavorite(toggled)
+                recipe = r
+                bindRecipe(r)
             }
         }
 
@@ -133,7 +110,6 @@ class RecipeDetailFragment : Fragment() {
 
         binding?.descriptionTextView?.text = r.description ?: "No description available"
 
-        updateFavoriteIcon(r.isFavorite)
 
         val currentEmail = FirebaseAuth.getInstance().currentUser?.email
         val currentUid = FirebaseAuth.getInstance().currentUser?.uid
@@ -258,49 +234,5 @@ class RecipeDetailFragment : Fragment() {
                 showStyledToast("Rating saved!", android.R.drawable.ic_menu_save, true)
             }
         }
-    }
-
-    private fun updateFavoriteIcon(isFavorite: Boolean) {
-        binding?.favoriteFab?.let { fab ->
-            fab.imageTintList = null
-            if (isFavorite) {
-                fab.setImageResource(R.drawable.ic_favorite_filled)
-            } else {
-                fab.setImageResource(R.drawable.ic_favorite_border)
-            }
-        }
-    }
-
-    private fun animateFavoriteToggle(isFavorite: Boolean) {
-        val fab = binding?.favoriteFab ?: return
-        val ctx = context ?: return
-        fab.imageTintList = null
-
-        if (isFavorite) {
-            val animDrawable = androidx.core.content.res.ResourcesCompat.getDrawable(resources, R.drawable.avd_heart_fill, ctx.theme)
-            if (animDrawable != null) {
-                fab.setImageDrawable(animDrawable)
-                if (animDrawable is Animatable) (animDrawable as Animatable).start()
-
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (recipe?.isFavorite == true) {
-                        fab.setImageResource(R.drawable.ic_favorite_filled)
-                    }
-                }, 220)
-            }
-        } else {
-            fab.setImageResource(R.drawable.ic_favorite_border)
-        }
-
-        fab.scaleX = 0.85f
-        fab.scaleY = 0.85f
-        fab.animate()
-            .scaleX(1.15f)
-            .scaleY(1.15f)
-            .setDuration(160)
-            .withEndAction {
-                fab.animate().scaleX(1.0f).scaleY(1.0f).setDuration(160).start()
-            }
-            .start()
     }
 }

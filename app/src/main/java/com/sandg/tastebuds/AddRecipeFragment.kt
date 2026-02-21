@@ -184,7 +184,6 @@ class AddRecipeFragment : Fragment() {
         val recipe = Recipe(
             id = recipeId,
             name = recipeName,
-            isFavorite = false,
             imageUrlString = if (imageUrl.isNullOrEmpty()) null else imageUrl,
             publisher = publisherEmail,
             publisherId = publisherUid,

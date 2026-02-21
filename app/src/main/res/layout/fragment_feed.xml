@@ -51,16 +51,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Filter Chip for Liked Recipes -->
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipShowLikedOnly"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="❤ Liked Recipes"
-                android:textStyle="bold"
-                android:checkable="true"
-                android:checked="false"
-                style="@style/Widget.Material3.Chip.Filter" />
 
         </LinearLayout>
 

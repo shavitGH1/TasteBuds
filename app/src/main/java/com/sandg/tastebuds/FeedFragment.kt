@@ -27,17 +27,14 @@ class FeedFragment : Fragment() {
     private lateinit var adapter: GridRecipesAdapter
     private val firebaseModel = FirebaseModel()
     private lateinit var swipe: SwipeRefreshLayout
-    private var showLikedOnly = false
     private var searchQuery = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_feed, container, false)
         val recycler = root.findViewById<RecyclerView>(R.id.recyclerView)
         swipe = root.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
-        val chipShowLikedOnly = root.findViewById<com.google.android.material.chip.Chip>(R.id.chipShowLikedOnly)
         val searchEditText = root.findViewById<EditText>(R.id.searchEditText)
 
-        // Handle search input
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -47,28 +44,17 @@ class FeedFragment : Fragment() {
             }
         })
 
-        // Handle filter chip
-        chipShowLikedOnly.setOnCheckedChangeListener { _, isChecked ->
-            showLikedOnly = isChecked
-            updateRecipesList()
-        }
-
         val span = 2
         recycler.layoutManager = GridLayoutManager(requireContext(), span)
         adapter = GridRecipesAdapter()
         adapter.listener = object : OnItemClickListener {
             override fun onRecipeItemClick(recipe: Recipe) {
-                // Save current tab before navigating away
                 val prefs = requireContext().getSharedPreferences("home_host_prefs", android.content.Context.MODE_PRIVATE)
                 prefs.edit().putInt("last_selected_tab", R.id.nav_feed).apply()
-
                 val args = bundleOf("recipeId" to recipe.id)
                 findNavController().navigate(R.id.action_global_recipeDetailFragment, args)
             }
 
-            override fun onToggleFavorite(recipe: Recipe) {
-                sharedVm.toggleFavorite(recipe)
-            }
 
             override fun onRecipeOptions(recipe: Recipe, view: View) {
                 showRecipeOptionsMenu(recipe, view)
@@ -106,10 +92,6 @@ class FeedFragment : Fragment() {
             recipe.publisherId != currentUid
         }
 
-        // Apply liked filter
-        if (showLikedOnly) {
-            filteredList = filteredList.filter { it.isFavorite }
-        }
 
         // Apply search filter across all fields
         if (searchQuery.isNotEmpty()) {

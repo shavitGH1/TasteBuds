@@ -41,19 +41,16 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
         private val tvDifficulty = view.findViewById<TextView>(R.id.tvDifficulty)
         private val tvMeta = view.findViewById<TextView>(R.id.tvMeta)
         private val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
-        private val fav = view.findViewById<ImageView>(R.id.favoriteImage)
         private val optionsBtn = view.findViewById<ImageView>(R.id.optionsButton)
 
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
 
-            // Star rating — always visible
             val avgRating = recipe.getAverageRating()
             val ratingCount = recipe.getRatingCount()
             tvRatingValue.text = if (ratingCount > 0) String.format("%.1f", avgRating) else "0.0"
             tvRatingCount.text = if (ratingCount > 0) "($ratingCount)" else "(0)"
 
-            // Difficulty — show separator + label only when set
             val difficulty = recipe.difficulty
             if (!difficulty.isNullOrBlank()) {
                 tvDifficultySep.visibility = View.VISIBLE
@@ -64,10 +61,8 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
                 tvDifficulty.visibility = View.GONE
             }
 
-            // Time
             tvMeta.text = recipe.time?.let { "$it min" } ?: ""
             tvPublisher.text = recipe.publisher ?: ""
-
 
             if (!recipe.imageUrlString.isNullOrEmpty()) {
                 Picasso.get().load(recipe.imageUrlString).into(ivImage)
@@ -75,20 +70,11 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
                 ivImage.setImageDrawable(null)
             }
 
-            // Update favorite icon based on recipe state
-            fav.setImageResource(if (recipe.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
+            // Hide favorite icon
+            view.findViewById<ImageView>(R.id.favoriteImage)?.visibility = View.GONE
 
             view.setOnClickListener { listener?.onRecipeItemClick(recipe) }
 
-            // Toggle locally, send toggled recipe to listener for shared ViewModel handling
-            fav.setOnClickListener {
-                val toggled = recipe.copy(isFavorite = !recipe.isFavorite)
-                // Optimistic UI update
-                fav.setImageResource(if (toggled.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
-                listener?.onToggleFavorite(toggled)
-            }
-
-            // Options button click
             optionsBtn.setOnClickListener { v ->
                 listener?.onRecipeOptions(recipe, v)
             }
