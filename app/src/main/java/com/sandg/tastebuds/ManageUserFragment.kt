@@ -177,15 +177,17 @@ class ManageUserFragment : Fragment() {
             val prefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
             prefs.edit().putString("photo_path_${user.uid}", file.absolutePath).apply()
 
-            // Update UI
+            // Update UI — invalidate Picasso cache first so the new photo is loaded fresh
             val ivAvatar = view?.findViewById<ImageView>(R.id.ivAvatar)
             ivAvatar?.let {
+                com.squareup.picasso.Picasso.get().invalidate(file)
                 com.squareup.picasso.Picasso.get()
                     .load(file)
+                    .memoryPolicy(com.squareup.picasso.MemoryPolicy.NO_CACHE, com.squareup.picasso.MemoryPolicy.NO_STORE)
+                    .networkPolicy(com.squareup.picasso.NetworkPolicy.NO_CACHE)
                     .resize(120, 120)
                     .centerCrop()
                     .into(it)
-                // Remove tint when showing photo
                 it.imageTintList = null
             }
 
