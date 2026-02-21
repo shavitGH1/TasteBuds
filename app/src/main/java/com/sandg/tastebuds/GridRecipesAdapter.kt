@@ -34,25 +34,49 @@ class GridRecipesAdapter : ListAdapter<Recipe, GridRecipesAdapter.GridViewHolder
     inner class GridViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         private val ivImage = view.findViewById<ImageView>(R.id.ivImage)
         private val tvName = view.findViewById<TextView>(R.id.tvName)
+        private val tvRatingValue = view.findViewById<TextView>(R.id.tvRatingValue)
+        private val tvStarSymbol = view.findViewById<TextView>(R.id.tvStarSymbol)
+        private val tvRatingCount = view.findViewById<TextView>(R.id.tvRatingCount)
+        private val tvDifficultySep = view.findViewById<TextView>(R.id.tvDifficultySep)
+        private val tvDifficulty = view.findViewById<TextView>(R.id.tvDifficulty)
+        private val tvMeta = view.findViewById<TextView>(R.id.tvMeta)
         private val tvPublisher = view.findViewById<TextView>(R.id.tvPublisher)
-        private val fav = view.findViewById<ImageView>(R.id.favoriteImage)
+        private val optionsBtn = view.findViewById<ImageView>(R.id.optionsButton)
 
         fun bind(recipe: Recipe) {
             tvName.text = recipe.name
-            tvPublisher.text = recipe.publisher ?: ""
-            Picasso.get().load(recipe.imageUrlString).placeholder(R.drawable.ic_baseline_person_24).into(ivImage)
 
-            // Update favorite icon based on recipe state
-            fav.setImageResource(if (recipe.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
+            val avgRating = recipe.getAverageRating()
+            val ratingCount = recipe.getRatingCount()
+            tvRatingValue.text = if (ratingCount > 0) String.format("%.1f", avgRating) else "0.0"
+            tvRatingCount.text = if (ratingCount > 0) "($ratingCount)" else "(0)"
+
+            val difficulty = recipe.difficulty
+            if (!difficulty.isNullOrBlank()) {
+                tvDifficultySep.visibility = View.VISIBLE
+                tvDifficulty.text = difficulty
+                tvDifficulty.visibility = View.VISIBLE
+            } else {
+                tvDifficultySep.visibility = View.GONE
+                tvDifficulty.visibility = View.GONE
+            }
+
+            tvMeta.text = recipe.time?.let { "$it min" } ?: ""
+            tvPublisher.text = recipe.publisher ?: ""
+
+            if (!recipe.imageUrlString.isNullOrEmpty()) {
+                Picasso.get().load(recipe.imageUrlString).into(ivImage)
+            } else {
+                ivImage.setImageDrawable(null)
+            }
+
+            // Hide favorite icon
+            view.findViewById<ImageView>(R.id.favoriteImage)?.visibility = View.GONE
 
             view.setOnClickListener { listener?.onRecipeItemClick(recipe) }
 
-            // Toggle locally, send toggled recipe to listener for shared ViewModel handling
-            fav.setOnClickListener {
-                val toggled = recipe.copy(isFavorite = !recipe.isFavorite)
-                // Optimistic UI update
-                fav.setImageResource(if (toggled.isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border)
-                listener?.onToggleFavorite(toggled)
+            optionsBtn.setOnClickListener { v ->
+                listener?.onRecipeOptions(recipe, v)
             }
         }
     }

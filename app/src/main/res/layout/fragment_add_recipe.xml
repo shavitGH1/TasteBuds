@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#E5AF73"
+    android:background="@drawable/food_background_soft"
     tools:context=".AddRecipeFragment">
 
     <!-- Scrollable Content -->
@@ -24,6 +24,30 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
+            <!-- Import from Web Button -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/import_from_web_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#E8F5E9"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:text="🌍 Import a recipe from the web"
+                    android:textSize="15sp"
+                    android:textColor="#2E7D32"
+                    android:textStyle="bold"
+                    android:gravity="center" />
+
+            </androidx.cardview.widget.CardView>
 
             <!-- Recipe Name Card -->
 
@@ -98,7 +122,79 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Read-only: Preparation Time / Difficulty / Diet Restrictions -->
+            <!-- Difficulty Level Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Difficulty Level"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="3">
+
+                        <Button
+                            android:id="@+id/difficulty_easy_button"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Easy"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                        <Button
+                            android:id="@+id/difficulty_medium_button"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Medium"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                        <Button
+                            android:id="@+id/difficulty_hard_button"
+                            android:layout_width="0dp"
+                            android:layout_height="36dp"
+                            android:layout_weight="1"
+                            android:text="Hard"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Preparation Time Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -121,50 +217,14 @@
                         android:textColor="#333333"
                         android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:id="@+id/preparation_time_text"
+                    <EditText
+                        android:id="@+id/preparation_time_edit_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/default_time"
-                        android:textSize="16sp"
+                        android:hint="@string/hint_preparation_time"
+                        android:inputType="number"
                         android:background="@android:color/transparent"
-                        android:paddingBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_difficulty"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:id="@+id/difficulty_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/default_difficulty"
-                        android:textSize="16sp"
-                        android:background="@android:color/transparent"
-                        android:paddingBottom="8dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_diet_restrictions"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"
-                        android:layout_marginBottom="8dp" />
-
-                    <TextView
-                        android:id="@+id/diet_restrictions_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/default_diet"
-                        android:textSize="16sp"
-                        android:background="@android:color/transparent"
-                        android:paddingBottom="8dp" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -247,7 +307,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Add Picture Card -->
+            <!-- Image URL Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -264,27 +324,37 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_add_picture"
+                        android:text="@string/label_image_url"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
                         android:layout_marginBottom="8dp" />
 
+                    <EditText
+                        android:id="@+id/image_url_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/hint_image_url"
+                        android:inputType="textUri"
+                        android:background="@android:color/transparent"
+                        android:textSize="16sp" />
+
                     <ImageView
                         android:id="@+id/avatar_image_view"
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
+                        android:layout_marginTop="12dp"
                         android:scaleType="centerCrop"
                         android:background="#E0E0E0"
-                        android:contentDescription="@string/recipe_image_desc"
-                        app:srcCompat="@drawable/avatar" />
+                        android:visibility="gone"
+                        android:contentDescription="@string/recipe_image_desc" />
 
                     <Button
-                        android:id="@+id/select_image_button"
+                        android:id="@+id/preview_image_button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="@string/select_image"
+                        android:text="@string/preview_image"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 </LinearLayout>

@@ -10,7 +10,6 @@ data class Recipe(
     val id: String,
 
     val name: String,
-    var isFavorite: Boolean = false,
     val imageUrlString: String? = null,
 
     val publisher: String? = null,
@@ -20,15 +19,25 @@ data class Recipe(
     val time: Int? = null,
     val difficulty: String? = null,
     val dietRestrictions: List<String> = listOf(),
-    val description: String? = null
+    val description: String? = null,
+    val difficultyRating: Int? = null, // 1-5 stars for difficulty
+    val userRatings: Map<String, Int> = mapOf() // userId to rating (1-5 stars)
 ) {
+
+    // Calculate average user rating
+    fun getAverageRating(): Float {
+        if (userRatings.isEmpty()) return 0f
+        return userRatings.values.average().toFloat()
+    }
+
+    // Get total number of ratings
+    fun getRatingCount(): Int = userRatings.size
 
     companion object {
 
         fun fromJson(json: Map<String, Any?>): Recipe {
             val id = json["id"] as? String ?: ""
             val name = json["name"] as? String ?: ""
-            val isFavorite = json["isFavorite"] as? Boolean ?: false
             val imageUrlString = json["imageUrlString"] as? String
 
             val publisher = json["publisher"] as? String
@@ -54,10 +63,25 @@ data class Recipe(
 
             val description = json["description"] as? String
 
+            val difficultyRating = when (val dr = json["difficultyRating"]) {
+                is Number -> dr.toInt()
+                is String -> dr.toIntOrNull()
+                else -> null
+            }
+
+            val userRatings = (json["userRatings"] as? Map<*, *>)?.mapNotNull { (k, v) ->
+                val key = k as? String ?: return@mapNotNull null
+                val value = when (v) {
+                    is Number -> v.toInt()
+                    is String -> v.toIntOrNull()
+                    else -> null
+                } ?: return@mapNotNull null
+                key to value
+            }?.toMap() ?: mapOf()
+
             return Recipe(
                 id = id,
                 name = name,
-                isFavorite = isFavorite,
                 imageUrlString = imageUrlString,
                 publisher = publisher,
                 publisherId = publisherId,
@@ -66,7 +90,9 @@ data class Recipe(
                 time = time,
                 difficulty = difficulty,
                 dietRestrictions = dietRestrictions,
-                description = description
+                description = description,
+                difficultyRating = difficultyRating,
+                userRatings = userRatings
             )
         }
     }
@@ -84,7 +110,8 @@ data class Recipe(
             "difficulty" to difficulty,
             "dietRestrictions" to dietRestrictions,
             "description" to description,
-            "isFavorite" to isFavorite
+            "difficultyRating" to difficultyRating,
+            "userRatings" to userRatings
         )
 }
 

@@ -1,182 +1,172 @@
 package com.sandg.tastebuds
 
-import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.sandg.tastebuds.databinding.FragmentRecipeDetailBinding
-import com.sandg.tastebuds.models.Model
 import com.sandg.tastebuds.models.Recipe
 import com.squareup.picasso.Picasso
 
 class RecipeDetailFragment : Fragment() {
 
     private val sharedVm: SharedRecipesViewModel by activityViewModels()
+    private val viewModel: RecipeDetailViewModel by viewModels()
 
     private var binding: FragmentRecipeDetailBinding? = null
     private var recipeId: String? = null
-    private var recipe: Recipe? = null
-
-    private var lastLocalUpdateTime: Long = 0L
-    private var lastFetchStartTime: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            recipeId = it.getString("recipeId")
-        }
+        recipeId = arguments?.getString("recipeId")
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentRecipeDetailBinding.inflate(inflater, container, false)
-
         val id = recipeId
+
         if (id.isNullOrEmpty()) {
-            binding?.nameTextView?.text = "Recipe not found"
+            binding?.nameTextView?.text = getString(R.string.label_recipe_not_found)
             return binding?.root
         }
 
-        binding?.metaTextView?.text = "Loading..."
+        setupEditButton()
+        observeRecipe()
 
-        lastFetchStartTime = System.currentTimeMillis()
-        Model.shared.getRecipeById(id) { r ->
-            activity?.runOnUiThread {
-                if (lastLocalUpdateTime > lastFetchStartTime) return@runOnUiThread
-                recipe = r
-                bindRecipe(r)
-            }
-        }
-
-        // Observe shared viewmodel so detail updates when favorites change elsewhere
-        sharedVm.recipes.observe(viewLifecycleOwner) { list ->
-            val idLocal = recipeId
-            if (idLocal == null) return@observe
-            val updated = list.firstOrNull { it.id == idLocal }
-            if (updated != null) {
-                recipe = updated
-                bindRecipe(updated)
-            }
-        }
-
-        binding?.favoriteFab?.setOnClickListener {
-            recipe?.let { r ->
-                val toggled = r.copy(isFavorite = !r.isFavorite)
-                lastLocalUpdateTime = System.currentTimeMillis()
-                recipe = toggled
-                updateFavoriteIcon(toggled.isFavorite)
-                animateFavoriteToggle(toggled.isFavorite)
-
-                // Use shared ViewModel to toggle per-user favorite (avoids writing global favorite to server)
-                sharedVm.toggleFavorite(toggled)
-            }
-        }
-
-        binding?.editButton?.setOnClickListener {
-            findNavController().navigate(R.id.action_global_addRecipeFragment)
-        }
+        // Seed the detail VM from the shared list first (instant), then fetch fresh copy
+        val cached = sharedVm.recipes.value?.firstOrNull { it.id == id }
+        if (cached != null) viewModel.setRecipe(cached)
+        viewModel.loadRecipe(id)
 
         return binding?.root
     }
 
+    // ── Observers ─────────────────────────────────────────────────────────────
+
+    private fun observeRecipe() {
+        viewModel.recipe.observe(viewLifecycleOwner) { recipe ->
+            if (recipe != null) bindRecipe(recipe)
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
+            if (loading && viewModel.recipe.value == null) binding?.nameTextView?.text = getString(R.string.label_loading)
+        }
+    }
+
+    // ── Binding ───────────────────────────────────────────────────────────────
+
     private fun bindRecipe(r: Recipe) {
         binding?.nameTextView?.text = r.name
-        binding?.authorTextView?.text = r.publisher ?: ""
+        binding?.timeTextView?.text = r.time?.let { getString(R.string.label_time_minutes, it) } ?: getString(R.string.label_not_specified)
+        binding?.difficultyTextView?.text = r.difficulty?.takeIf { it.isNotBlank() } ?: getString(R.string.label_not_specified)
+        binding?.descriptionTextView?.text = r.description ?: getString(R.string.label_no_description)
 
-        val timeText = r.time?.let { "$it min" } ?: ""
-        val difficultyText = r.difficulty ?: ""
-        val dietText = if (r.dietRestrictions.isNotEmpty()) r.dietRestrictions.joinToString(", ") else ""
-        val metaParts = listOf(timeText, difficultyText, dietText).filter { it.isNotEmpty() }
-        binding?.metaTextView?.text = metaParts.joinToString(" • ")
+        loadImage(r.imageUrlString)
+        showEditButtonIfOwner(r)
+        setupRatingCard(r)
+        populateIngredients(r)
+        populateSteps(r)
+    }
 
-        binding?.descriptionTextView?.text = r.description ?: ""
-
-        updateFavoriteIcon(r.isFavorite)
-
-        binding?.imageView?.let { imageView ->
-            Picasso.get()
-                .load(r.imageUrlString)
-                .placeholder(R.drawable.ic_baseline_person_24)
-                .into(imageView)
+    private fun loadImage(url: String?) {
+        if (url.isNullOrEmpty()) { binding?.imageCard?.visibility = View.GONE; return }
+        binding?.imageView?.let { iv ->
+            Picasso.get().load(url).into(iv, object : com.squareup.picasso.Callback {
+                override fun onSuccess() { binding?.imageCard?.visibility = View.VISIBLE }
+                override fun onError(e: Exception?) { binding?.imageCard?.visibility = View.GONE }
+            })
         }
+    }
 
-        val currentEmail = FirebaseAuth.getInstance().currentUser?.email
-        if (!currentEmail.isNullOrEmpty() && !r.publisher.isNullOrEmpty() && currentEmail == r.publisher) {
-            binding?.editButton?.visibility = View.VISIBLE
-        } else {
-            binding?.editButton?.visibility = View.GONE
+    private fun showEditButtonIfOwner(r: Recipe) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val isOwner = !uid.isNullOrEmpty() && uid == r.publisherId
+        binding?.editButton?.visibility = if (isOwner) View.VISIBLE else View.GONE
+    }
+
+    private fun setupEditButton() {
+        binding?.editButton?.setOnClickListener {
+            val r = viewModel.recipe.value ?: return@setOnClickListener
+            findNavController().navigate(
+                R.id.action_global_addRecipeFragment,
+                Bundle().apply {
+                    putString("recipeId", r.id)
+                    putString("recipeName", r.name)
+                    putString("description", r.description)
+                    putInt("time", r.time ?: 30)
+                    putString("difficulty", r.difficulty)
+                    putString("imageUrl", r.imageUrlString)
+                    putStringArrayList("steps", ArrayList(r.steps))
+                    putString("ingredientsJson", com.google.gson.Gson().toJson(r.ingredients))
+                }
+            )
         }
+    }
 
+    private fun setupRatingCard(r: Recipe) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val isOtherUser = !uid.isNullOrEmpty() && r.publisherId != uid
+        binding?.ratingCard?.visibility = if (isOtherUser) View.VISIBLE else View.GONE
+        if (!isOtherUser) return
+
+        val avg = r.getAverageRating()
+        val count = r.getRatingCount()
+        binding?.averageRatingText?.text = String.format(java.util.Locale.getDefault(), "%.1f", avg)
+        binding?.ratingCountText?.text = if (count == 1)
+            getString(R.string.label_ratings_count, count)
+        else
+            getString(R.string.label_ratings_count_plural, count)
+
+        val stars = listOf(binding?.userRatingStar1, binding?.userRatingStar2, binding?.userRatingStar3, binding?.userRatingStar4, binding?.userRatingStar5)
+        val userRating = r.userRatings[uid] ?: 0
+        updateStarUI(stars, userRating)
+        stars.forEachIndexed { index, star ->
+            star?.setOnClickListener { onStarClicked(r, uid!!, index + 1, stars) }
+        }
+    }
+
+    private fun onStarClicked(r: Recipe, uid: String, rating: Int, stars: List<ImageView?>) {
+        updateStarUI(stars, rating)
+        viewModel.saveRating(r, uid, rating)
+        showStyledToast("Rating saved!", android.R.drawable.ic_menu_save, true)
+    }
+
+    private fun updateStarUI(stars: List<ImageView?>, rating: Int) {
+        stars.forEachIndexed { i, star ->
+            star?.setImageResource(if (i < rating) android.R.drawable.btn_star_big_on else android.R.drawable.btn_star_big_off)
+        }
+    }
+
+    private fun populateIngredients(r: Recipe) {
         binding?.ingredientsContainer?.removeAllViews()
         r.ingredients.forEach { ing ->
-            val tv = TextView(requireContext())
+            val tv = TextView(context ?: return)
             val amt = ing.amount?.let { if (it == it.toInt().toDouble()) it.toInt().toString() else it.toString() } ?: ""
             val unit = ing.unit ?: ""
-            val text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} — $amt $unit".trim() else ing.name
-            tv.text = text
+            tv.text = if (amt.isNotEmpty() || unit.isNotEmpty()) "${ing.name} — $amt $unit".trim() else ing.name
             tv.setPadding(0, 6, 0, 6)
             binding?.ingredientsContainer?.addView(tv)
         }
+    }
 
+    private fun populateSteps(r: Recipe) {
         binding?.stepsContainer?.removeAllViews()
-        r.steps.forEachIndexed { idx, step ->
-            val tv = TextView(requireContext())
-            tv.text = "${idx + 1}. $step"
+        r.steps.forEachIndexed { i, step ->
+            val tv = TextView(context ?: return)
+            tv.text = getString(R.string.step_number_format, i + 1, step)
             tv.setPadding(0, 6, 0, 6)
             binding?.stepsContainer?.addView(tv)
         }
     }
 
-    private fun updateFavoriteIcon(isFavorite: Boolean) {
-        binding?.favoriteFab?.let { fab ->
-            fab.imageTintList = null
-            if (isFavorite) {
-                fab.setImageResource(R.drawable.ic_favorite_filled)
-            } else {
-                fab.setImageResource(R.drawable.ic_favorite_border)
-            }
-        }
-    }
-
-    private fun animateFavoriteToggle(isFavorite: Boolean) {
-        val fab = binding?.favoriteFab ?: return
-        fab.imageTintList = null
-
-        if (isFavorite) {
-            val animDrawable = androidx.core.content.res.ResourcesCompat.getDrawable(resources, R.drawable.avd_heart_fill, requireContext().theme)
-            if (animDrawable != null) {
-                fab.setImageDrawable(animDrawable)
-                if (animDrawable is Animatable) (animDrawable as Animatable).start()
-
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (recipe?.isFavorite == true) {
-                        fab.setImageResource(R.drawable.ic_favorite_filled)
-                    }
-                }, 220)
-            }
-        } else {
-            fab.setImageResource(R.drawable.ic_favorite_border)
-        }
-
-        fab.scaleX = 0.85f
-        fab.scaleY = 0.85f
-        fab.animate()
-            .scaleX(1.15f)
-            .scaleY(1.15f)
-            .setDuration(160)
-            .withEndAction {
-                fab.animate().scaleX(1.0f).scaleY(1.0f).setDuration(160).start()
-            }
-            .start()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 }

@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Colman2026Class2"
+rootProject.name = "TasteBuds"
 include(":app")

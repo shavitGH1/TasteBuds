@@ -1,54 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    android:padding="24dp">
+    android:background="@drawable/food_background_vanilla"
+    android:fillViewport="true">
 
-    <ImageView
-        android:id="@+id/ivAvatar"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@drawable/avatar"
-        android:scaleType="centerCrop"
-        android:background="@drawable/avatar_bg_oval"
-        android:contentDescription="User avatar"
-        android:clipToOutline="true" />
-
-    <Button
-        android:id="@+id/btnEditAvatar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Edit Avatar"
-        android:layout_marginTop="12dp" />
-
-    <TextView
-        android:id="@+id/tvName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:paddingTop="16dp" />
-
-    <TextView
-        android:id="@+id/tvEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp" />
-
-    <Button
-        android:id="@+id/btnChangePassword"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Change Password"
-        android:layout_marginTop="24dp" />
+        android:padding="20dp">
 
-    <Button
-        android:id="@+id/btnSignOut"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Sign Out"
-        android:layout_marginTop="12dp" />
+        <!-- Profile Header Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="16dp">
 
-</LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="24dp"
+                android:gravity="center_horizontal">
+
+                <!-- Large Person Icon with Background -->
+                <FrameLayout
+                    android:layout_width="120dp"
+                    android:layout_height="120dp">
+
+                    <!-- Avatar ImageView is circular by using the oval drawable as background and clipToOutline -->
+                    <ImageView
+                        android:id="@+id/ivAvatar"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:src="@drawable/ic_baseline_person_24"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/recipe_image_desc"
+                        android:background="@drawable/avatar_bg_oval"
+                        android:clipToOutline="true"
+                        app:tint="#FFFFFF" />
+
+                </FrameLayout>
+
+                <!-- Edit Photo Button -->
+                <Button
+                    android:id="@+id/btnEditPhoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📷 Edit Photo"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#FF6B35"
+                    app:cornerRadius="20dp"
+                    style="@style/Widget.Material3.Button.TonalButton" />
+
+                <!-- Welcome Message -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Welcome Back!"
+                    android:textSize="16sp"
+                    android:textColor="#FF6B35"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp" />
+
+                <!-- User Name row with edit button -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/tvName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="User Name"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="#2D2D2D"
+                        android:gravity="center" />
+
+                    <ImageButton
+                        android:id="@+id/btnEditName"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/ic_edit"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Edit name"
+                        app:tint="#FF6B35" />
+
+                </LinearLayout>
+
+                <!-- User Email -->
+                <TextView
+                    android:id="@+id/tvEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="email@example.com"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:paddingTop="4dp"
+                    android:gravity="center" />
+
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Account Actions Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚙️ Account Settings"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2D2D2D"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Change Password Button -->
+                <Button
+                    android:id="@+id/btnChangePassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🔒 Change Password"
+                    android:textSize="16sp"
+                    android:paddingVertical="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:backgroundTint="#FF6B35"
+                    android:textColor="#FFFFFF"
+                    app:cornerRadius="12dp" />
+
+                <!-- Sign Out Button -->
+                <Button
+                    android:id="@+id/btnSignOut"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🚪 Sign Out"
+                    android:textSize="16sp"
+                    android:paddingVertical="16dp"
+                    android:backgroundTint="#D84315"
+                    android:textColor="#FFFFFF"
+                    app:cornerRadius="12dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Footer Message -->
+
+    </LinearLayout>
+
+</ScrollView>

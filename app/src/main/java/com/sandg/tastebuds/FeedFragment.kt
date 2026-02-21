@@ -1,76 +1,92 @@
 package com.sandg.tastebuds
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.os.bundleOf
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import android.widget.EditText
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.sandg.tastebuds.models.FirebaseModel
 import com.sandg.tastebuds.models.Recipe
 
-class FeedFragment : Fragment() {
+class FeedFragment : BaseRecipeListFragment() {
 
-    private val sharedVm: SharedRecipesViewModel by activityViewModels()
+    private val viewModel: FeedViewModel by viewModels()
     private lateinit var adapter: GridRecipesAdapter
-    private val firebaseModel = FirebaseModel()
     private lateinit var swipe: SwipeRefreshLayout
+    private var searchQuery = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_feed, container, false)
+        swipe = root.findViewById(R.id.swipeRefresh)
         val recycler = root.findViewById<RecyclerView>(R.id.recyclerView)
-        swipe = root.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+        val searchEditText = root.findViewById<EditText>(R.id.searchEditText)
 
-        val span = 2
-        recycler.layoutManager = GridLayoutManager(requireContext(), span)
-        adapter = GridRecipesAdapter()
-        adapter.listener = object : OnItemClickListener {
-            override fun onRecipeItemClick(recipe: Recipe) {
-                val args = bundleOf("recipeId" to recipe.id)
-                findNavController().navigate(R.id.action_recipesListFragment_to_recipeDetailFragment, args)
-            }
-
-            override fun onToggleFavorite(recipe: Recipe) {
-                sharedVm.toggleFavorite(recipe)
-            }
-        }
-        // ensure adapter stable ids (adapter already sets this, but reinforce)
-        adapter.setHasStableIds(true)
-        recycler.adapter = adapter
-
-        // Prevent content from being clipped by bottom nav
-        recycler.clipToPadding = false
-
-        // Load initial data from shared viewmodel
-        sharedVm.recipes.observe(viewLifecycleOwner) { list ->
-            adapter.submitList(list.toList())
-        }
-
-        swipe.setOnRefreshListener {
-            // Use shared viewmodel to reload both local and remote recipes and merge them
-            swipe.isRefreshing = true
-            sharedVm.reloadAll {
-                swipe.isRefreshing = false
-            }
-        }
+        setupRecycler(recycler)
+        setupSearch(searchEditText)
+        setupSwipeRefresh()
+        observeRecipes()
 
         return root
     }
 
+    private fun setupRecycler(recycler: RecyclerView) {
+        recycler.layoutManager = GridLayoutManager(requireContext(), 2)
+        recycler.clipToPadding = false
+        adapter = GridRecipesAdapter()
+        adapter.setHasStableIds(true)
+        adapter.listener = object : OnItemClickListener {
+            override fun onRecipeItemClick(recipe: Recipe) {
+                saveLastTab(R.id.nav_feed)
+                findNavController().navigate(
+                    R.id.action_global_recipeDetailFragment,
+                    android.os.Bundle().apply { putString("recipeId", recipe.id) }
+                )
+            }
+            override fun onRecipeOptions(recipe: Recipe, view: View) {
+                showRecipeOptionsMenu(recipe, view)
+            }
+        }
+        recycler.adapter = adapter
+    }
+
+    private fun setupSearch(editText: EditText) {
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                searchQuery = s?.toString()?.trim() ?: ""
+                refreshList()
+            }
+        })
+    }
+
+    private fun setupSwipeRefresh() {
+        swipe.setOnRefreshListener {
+            swipe.isRefreshing = true
+            sharedVm.reloadAll { swipe.isRefreshing = false }
+        }
+    }
+
+    private fun observeRecipes() {
+        sharedVm.recipes.observe(viewLifecycleOwner) { refreshList() }
+    }
+
+    private fun refreshList() {
+        val filtered = viewModel.filterFeedRecipes(sharedVm.recipes.value ?: emptyList(), searchQuery)
+        adapter.submitList(filtered)
+    }
+
     override fun onResume() {
         super.onResume()
-        // Automatically refresh the feed when the fragment becomes visible
-        // show spinner while reloading
         swipe.post {
             swipe.isRefreshing = true
-            sharedVm.reloadAll {
-                swipe.isRefreshing = false
-            }
+            sharedVm.reloadAll { swipe.isRefreshing = false }
         }
     }
 }

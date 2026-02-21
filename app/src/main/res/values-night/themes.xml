@@ -1,7 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Colman2026Class2" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Base.Theme.TasteBuds" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Header/ActionBar styling - darker and more inviting -->
+        <item name="colorPrimary">@color/header_background</item>
+        <item name="colorOnPrimary">@color/header_text_color</item>
+        <item name="colorPrimaryContainer">@color/header_background</item>
+        <item name="colorOnPrimaryContainer">@color/header_text_color</item>
     </style>
 </resources>

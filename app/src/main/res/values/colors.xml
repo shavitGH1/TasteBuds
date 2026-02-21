@@ -9,4 +9,12 @@
     <!-- Public tints for bottom navigation (use the provided purple) -->
     <color name="bottom_nav_icon_tint">#ff6750a4</color>
     <color name="bottom_nav_label_tint">#ff6750a4</color>
+
+    <!-- Header/Action Bar colors -->
+    <color name="header_background">#D4A574</color>
+    <color name="header_text_color">#3E2723</color>
+    <color name="header_icon_color">#3E2723</color>
+
+    <!-- Plus icon accent - bold and eye-catching -->
+    <color name="plus_icon_color">#C62828</color>
 </resources>

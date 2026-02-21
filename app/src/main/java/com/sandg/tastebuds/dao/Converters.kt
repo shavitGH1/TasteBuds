@@ -36,5 +36,19 @@ object Converters {
         val listType = object : TypeToken<List<String>>() {}.type
         return gson.fromJson(value, listType)
     }
+
+    @TypeConverter
+    @JvmStatic
+    fun fromUserRatingsMap(value: Map<String, Int>?): String? {
+        return if (value == null) null else gson.toJson(value)
+    }
+
+    @TypeConverter
+    @JvmStatic
+    fun toUserRatingsMap(value: String?): Map<String, Int>? {
+        if (value == null) return mapOf()
+        val mapType = object : TypeToken<Map<String, Int>>() {}.type
+        return gson.fromJson(value, mapType)
+    }
 }
 

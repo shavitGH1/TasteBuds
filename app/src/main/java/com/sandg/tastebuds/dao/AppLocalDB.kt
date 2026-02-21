@@ -52,6 +52,13 @@ object AppLocalDB {
         }
     }
 
+    // Migration 5 -> 6: drop the Favorite table (feature removed)
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("DROP TABLE IF EXISTS `Favorite`")
+        }
+    }
+
     val db: AppLocalDbRepository by lazy {
 
         val context = MyApplication.appContext
@@ -62,7 +69,7 @@ object AppLocalDB {
             klass = AppLocalDbRepository::class.java,
             name = "recipes.db"
         )
-            .addMigrations(MIGRATION_4_5)
+            .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
             .build()
     }
 }
